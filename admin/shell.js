@@ -5,9 +5,9 @@ import { mountSettings } from './settings.js';
 
 const KEY = 'kw:site-draft:v1';
 const labels = {
-  overview: ['Обзор мастерской', 'Состояние каталога и оформление сайта.'],
+  overview: ['Обзор мастерской', 'Измените карточку или настройки, проверьте предпросмотр и опубликуйте результат.'],
   catalog: ['Каталог', 'Управляйте карточками, фотографиями и порядком моделей.'],
-  settings: ['Настройки сайта', 'Тексты, контакты мастерской и размеры для планировки.'],
+  settings: ['Настройки сайта', 'Оформление, контакты, реквизиты и параметры планировки.'],
 };
 const categories = { utility: 'Хозблоки', bath: 'Бани', cabin: 'Бытовки', house: 'Дома' };
 const $ = selector => document.querySelector(selector);
@@ -67,7 +67,30 @@ function confirmAction(title, message, submit) {
     confirmDialog.showModal();
   });
 }
-function activeTab() { const key=location.hash.slice(1); return Object.hasOwn(labels,key) ? key : 'overview'; }
+const settingAnchors = {'settings/season':'kw-season', 'settings/legal':'kw-legal'};
+let route = '';
+function routeFromHash() {
+  const key = location.hash.slice(1);
+  return Object.hasOwn(labels,key) || Object.hasOwn(settingAnchors,key) ? key : 'overview';
+}
+function markNavigation(next) {
+  for (const link of document.querySelectorAll('[data-nav]')) {
+    if (link.dataset.nav === next) link.setAttribute('aria-current','page');
+    else link.removeAttribute('aria-current');
+    link.classList.toggle('is-parent', link.dataset.nav === 'settings' && Boolean(settingAnchors[next]));
+  }
+}
+function focusSection(next, focusHeading) {
+  const group = document.getElementById(settingAnchors[next] || '');
+  if (group) {
+    const first = group.querySelector('input:checked') || group.querySelector('select, button, input, textarea');
+    if (first) first.focus({preventScroll:true});
+    group.scrollIntoView({block:'start',behavior:'instant'});
+  } else if (focusHeading) {
+    $('#section-title').focus({preventScroll:true});
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+}
 function stamp() { return crypto.randomUUID(); }
 function readSaved() {
   try {
@@ -138,6 +161,7 @@ function setMenu(open) {
 }
 function updateState() {
   $('#draft-bar').hidden=!data;
+  $('#draft-bar').classList.toggle('has-draft',dirty);
   $('#mode').textContent=owner?'Режим владельца':'Деморежим';
   $('#account span').textContent=owner?'Владелец · выход':'Вход владельца';
   $('#publish').disabled=!data || busy || conflict || !dirty;
@@ -146,7 +170,9 @@ function updateState() {
   $('#preview').setAttribute('aria-disabled',String(!data || busy));
   $('#save-state').textContent=storageConflict?'Конфликт вкладок':storageBlocked?'Черновик только в памяти':
     (dirty ? 'Черновик на устройстве' + (savedAt ? ' · ' + new Date(savedAt).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : '')
-           : owner ? 'Сайт и панель синхронизированы' : 'Изменения сохраняются на этом устройстве');
+           : owner ? 'Все изменения опубликованы' : 'Черновик сохранится в этом браузере. Публикация доступна владельцу.');
+  $('#status-login').hidden=Boolean(owner);
+  $('#status-login').disabled=busy;
   $('#signed-out').hidden=Boolean(owner); $('#signed-in').hidden=!owner;
   $('#access-title').textContent=owner?'Доступ владельца':'Вход владельца';
   $('#account-summary').textContent=owner?'Вы можете обновлять каталог и настройки на сайте покупателей.':'';
@@ -157,46 +183,77 @@ function safePhoto(src) {
   if (/^assets\/[\w/.%+-]+$/i.test(src) && !src.includes('..')) return new URL('../'+src,location.href).href;
   try {const url=new URL(src); return url.protocol==='https:' && !url.username && !url.password ? url.href : null;} catch {return null;}
 }
+function actionLink(label, href, glyph, description) {
+  const link=element('a','a-quick');
+  link.href=href;
+  const mark=element('span','a-quick-icon');
+  mark.append(icon(glyph));
+  const copy=element('span','a-quick-copy');
+  copy.append(element('strong','',label),element('span','',description));
+  link.append(mark,copy);
+  return link;
+}
 function overview() {
   const visibleItems=data.items.filter(item=>item.published!==false);
-  const stats=element('div','a-stats');
-  for(const [label,count,glyph] of [['В каталоге',visibleItems.length,'box'],['Направлений',new Set(visibleItems.map(item=>item.category)).size,'branch'],['Скрыто',data.items.length-visibleItems.length,'archive']]) {
-    const card=element('div','a-stat'); card.append(element('span','',label),element('strong','',count),icon(glyph)); stats.append(card);
-  }
+  const winter=data.settings.theme==='newyear';
+  const quick=element('nav','a-quick-grid');
+  quick.setAttribute('aria-label','Быстрые действия');
+  const add=actionLink('Добавить постройку','#catalog','add','Новая карточка с фото и ценой');
+  add.classList.add('a-quick-primary'); add.dataset.newItem='';
+  const catalogue=actionLink('Изменить каталог','#catalog','catalog','Цены, фотографии и порядок');
+  const season=actionLink('Оформление и сезон','#settings/season','season','Обычный или новогодний вид');
+  const legal=actionLink('Реквизиты','#settings/legal','doc','Данные продавца для покупателей');
+  quick.append(add,catalogue,season,legal);
+
   const grid=element('div','a-overview'), listBox=element('section','a-box'), header=element('div','a-box-heading');
   const edit=element('a','','Весь каталог'); edit.href='#catalog';
-  header.append(element('h2','','Карточки мастерской'),edit); listBox.append(header);
+  header.append(element('h2','','Постройки мастерской'),edit); listBox.append(header);
+  const facts=element('p','a-list-stats');
+  facts.append(element('span','','Всего: '+data.items.length),element('span','','Показываются: '+visibleItems.length),element('span','','Скрыты: '+(data.items.length-visibleItems.length)));
+  listBox.append(facts);
   const list=element('ul','a-list');
-  for(const item of data.items.slice(0,4)){
-    const li=element('li'), thumb=element('span','a-thumb'), desc=element('span','a-item-text');
+  for (const item of data.items.slice(0,4)) {
+    const li=element('li'), link=element('a','a-item-action');
+    link.href='#catalog'; link.dataset.editId=item.id;
+    link.setAttribute('aria-label','Редактировать: '+item.name);
+    const thumb=element('span','a-thumb'), desc=element('span','a-item-text');
     const photo=safePhoto(item.photo);
-    if(photo){ const img=element('img'); img.alt=''; img.src=photo; img.addEventListener('error',()=>thumb.replaceChildren(icon('home')),{once:true}); thumb.append(img); }
-    else thumb.append(icon('home'));
+    if (photo) {
+      const img=element('img'); img.alt=''; img.src=photo;
+      img.addEventListener('error',()=>thumb.replaceChildren(icon('home')),{once:true}); thumb.append(img);
+    } else thumb.append(icon('home'));
     desc.append(element('strong','',item.name),element('small','',categories[item.category] || 'Модель'));
-    const tag=element('span','a-visibility',item.published===false?'Скрыта':'В каталоге'); if(item.published===false)tag.classList.add('hidden-item');
-    li.append(thumb,desc,tag);list.append(li);
+    const tag=element('span','a-visibility',item.published===false?'Скрыта':'В каталоге');
+    if (item.published===false) tag.classList.add('hidden-item');
+    link.append(thumb,desc,tag,icon('edit')); li.append(link); list.append(li);
   }
-  if (data.items.length) listBox.append(list); else listBox.append(element('p','a-empty','В каталоге пока нет карточек.'));
+  if (data.items.length) listBox.append(list);
+  else {
+    const empty=element('div','a-empty');
+    const first=element('a','a-card-link','Добавить первую постройку'); first.href='#catalog'; first.dataset.newItem='';
+    empty.append(element('p','','В каталоге пока нет построек.'),first); listBox.append(empty);
+  }
+
   const preview=element('section','a-box a-preview-card'), image=element('img','a-preview-photo');
-  image.src='../assets/photos/cladding.webp';image.alt='Обшивка барн-модуля мастерской';
-  const body=element('div','a-preview-body'), settings=element('a','a-card-link','Редактировать оформление');settings.href='#settings';
-  body.append(element('h2','','Страница мастерской'),element('p','',data.settings.location || 'Оформление и контакты'),settings);
-  preview.append(image,body);grid.append(listBox,preview);panel.replaceChildren(stats,grid);
+  image.src=winter?'../assets/winter-hero.webp':'../assets/hero.webp';
+  image.alt='';
+  const body=element('div','a-preview-body'), settings=element('a','a-card-link','Настроить оформление');
+  settings.href='#settings/season';
+  body.append(element('h2','','Оформление сайта'),element('p','',winter?'Новогодний вид':'Обычный вид'),settings);
+  preview.append(image,body); grid.append(listBox,preview); panel.replaceChildren(quick,grid);
 }
-function render(next=activeTab(), focus=false){
-  editor?.destroy?.(); editor=null; tab=next; setMenu(false);
-  const [title,subtitle]=labels[next];
+function render(next=routeFromHash(), focus=false) {
+  editor?.destroy?.(); editor=null; route=next; tab=next.split('/')[0]; setMenu(false);
+  const [title,subtitle]=labels[tab];
   $('#section-title').textContent=title; $('#section-subtitle').textContent=subtitle;
-  document.title=title+' · Karkaswood';
-  document.querySelectorAll('[data-nav]').forEach(link=>{
-    if(link.dataset.nav===next)link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
-  });
+  document.title=title+' · '+(data?.settings.brand || 'Karkaswood');
+  markNavigation(next);
   if (!data) return;
   panel.replaceChildren();
-  if(next==='overview') overview();
-  if(next==='catalog') editor=mountItems(panel,{items:data.items,onChange:items=>changePart('items',items)});
-  if(next==='settings') editor=mountSettings(panel,{settings:data.settings,onChange:settings=>changePart('settings',settings)});
-  if (focus) {$('#section-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
+  if (tab==='overview') overview();
+  if (tab==='catalog') editor=mountItems(panel,{items:data.items,onChange:items=>changePart('items',items)});
+  if (tab==='settings') editor=mountSettings(panel,{settings:data.settings,onChange:settings=>changePart('settings',settings)});
+  focusSection(next,focus);
   updateState();
 }
 function pending() {
@@ -213,26 +270,30 @@ function readyForAction() {
   return true;
 }
 async function navigate(next) {
-  if (next===tab || busy) {setMenu(false);return;}
-  if(pending() && !await confirmAction('Закрыть редактор?', 'Незавершённые правки в текущей форме будут потеряны.', 'Закрыть редактор'))return;
-  if(location.hash!=='#'+next){history.pushState(null,'','#'+next);}
-  render(next,true);
+  if (busy || !data) return false;
+  if (route===next) {setMenu(false); focusSection(next,false); return true;}
+  const nextTab=next.split('/')[0];
+  if (nextTab!==tab && pending() && !await confirmAction('Закрыть редактор?', 'Незавершённые правки в текущей форме будут потеряны.', 'Закрыть редактор')) return false;
+  if (location.hash!=='#'+next) history.pushState(null,'','#'+next);
+  if (nextTab===tab) {
+    route=next;setMenu(false);markNavigation(next);focusSection(next,true);
+  } else render(next,true);
+  return true;
 }
-document.addEventListener('click',event=>{
+document.addEventListener('click',async event=>{
   const link=event.target.closest('a[href^="#"]');
-  if(!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+  if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
   const target=link.hash.slice(1);
-  if(!Object.hasOwn(labels,target))return;
-  event.preventDefault();navigate(target);
+  if (!Object.hasOwn(labels,target) && !Object.hasOwn(settingAnchors,target)) return;
+  event.preventDefault();
+  if (!await navigate(target)) return;
+  if (link.hasAttribute('data-new-item')) editor?.openNew?.();
+  if (link.dataset.editId) editor?.openItem?.(link.dataset.editId);
 });
 window.addEventListener('hashchange',async()=>{
-  const next=activeTab();if(next===tab)return;
-  if(busy || pending()){
-    history.replaceState(null,'','#'+(tab||'overview'));
-    if(!busy) await navigate(next);
-    return;
-  }
-  render(next,true);
+  const next=routeFromHash();
+  if (next===route || !data) return;
+  if (!await navigate(next)) history.replaceState(null,'','#'+(route||'overview'));
 });
 function openAccess(forPublication=false) {
   if (busy || !readyForAction()) return;
@@ -242,6 +303,7 @@ function openAccess(forPublication=false) {
 }
 menuToggle.addEventListener('click',()=>setMenu(menuToggle.getAttribute('aria-expanded')!=='true'));
 $('#account').addEventListener('click',()=>openAccess());
+$('#status-login').addEventListener('click',()=>openAccess());
 accessDialog.querySelector('[data-close]').addEventListener('click',()=>accessDialog.close());
 accessDialog.addEventListener('close',()=>{$('#owner-password').value='';hostSession++;});
 $('#preview').addEventListener('click',event=>{

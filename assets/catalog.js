@@ -1,3 +1,5 @@
+import { getTourId } from './tour-registry.js';
+
 const categories = [
   ['all', 'Все'],
   ['utility', 'Хозблоки', 'Хозблок'],
@@ -79,11 +81,11 @@ function image(src,name) {
   return img;
 }
 
-export function mountCatalog(container, items, {onContact} = {}) {
+export function mountCatalog(container, items, {onContact, onTour} = {}) {
   const key = 'kc-'+(++instance);
   const entries = (Array.isArray(items) ? items : []).filter(item =>
     item && item.published !== false && item.visible !== false && typeof item.name === 'string' && item.name.trim() && categoryNames.has(item.category)
-  ).map(item => ({item, photo:photoURL(item.photo)})).filter(({item,photo}) => item.category !== 'house' || photo);
+  ).map(item => ({item, photo:photoURL(item.photo)}));
   const root = element('div','kc-root');
   const filters = element('div','kc-filters');
   filters.setAttribute('role','tablist');
@@ -146,7 +148,7 @@ export function mountCatalog(container, items, {onContact} = {}) {
     }
     const actions = element('div','kc-actions');
     actions.append(contactButton(item,'Обсудить модель',origin));
-    if (item.id === 'barn-2-4-5') actions.append(tourLink());
+    if (getTourId(item)) actions.append(tourLink(item, origin));
     description.append(actions);
     const close = element('button','kc-close');
     close.type = 'button';
@@ -159,11 +161,20 @@ export function mountCatalog(container, items, {onContact} = {}) {
     dialog.showModal();
   }
 
-  function tourLink() {
-    const link = element('a','kc-tour','Открыть 3D');
-    link.href = '#viewer';
+  function tourLink(item, opener) {
+    const embedded = getTourId(item) === 'barn-2-4-5';
+    const link = element(embedded ? 'a' : 'button','kc-tour','Смотреть в 3D');
+    link.setAttribute('aria-label','Смотреть в 3D: '+item.name);
+    if (embedded) link.href = '#viewer';
+    else {
+      link.type = 'button';
+      link.setAttribute('aria-haspopup','dialog');
+    }
     link.prepend(icon('cube'));
-    link.addEventListener('click',()=>{ if (dialog.open) dialog.close(); });
+    link.addEventListener('click', () => {
+      if (dialog.open) dialog.close();
+      if (!embedded) onTour?.(item, opener || link, onContact);
+    });
     return link;
   }
 
@@ -194,7 +205,7 @@ export function mountCatalog(container, items, {onContact} = {}) {
     info.append(arrow);
     opener.append(visual,info);
     article.append(opener);
-    if (item.id === 'barn-2-4-5') article.append(tourLink());
+    if (getTourId(item)) article.append(tourLink(item));
     return article;
   }
 

@@ -3,9 +3,16 @@ import { mountFit } from './fit.js';
 
 import { mountCatalog } from './catalog.js';
 import { mountMotion } from './motion.js';
+import { applySeason } from './season.js';
+import { getTourId } from './tour-registry.js';
+import { openProjectTour } from './project-dialog.js';
 import { getPreviewDraft, loadPublicSite } from './site-data.js';
 
+const pageParameters = new URLSearchParams(location.search);
+const seasonalPreview = pageParameters.get('season');
+const requestedProject = pageParameters.get('project');
 mountMotion();
+if (seasonalPreview === 'newyear' && pageParameters.get('preview') !== 'draft') applySeason('newyear');
 
 function syncIdentity(settings) {
   const text = (selector, value) => {
@@ -87,11 +94,20 @@ async function preparePage() {
   document.querySelector('#preview-status').hidden = !draft;
   const {settings, items} = snapshot;
   syncIdentity(settings);
-  const showContact = mountContact(settings);
-  mountCatalog(document.querySelector('#product-catalog'), items.filter(item => item.published !== false), {
-    onContact: (item, trigger) => showContact(trigger, item)
+  applySeason(!draft && ['classic','newyear'].includes(seasonalPreview) ? seasonalPreview : settings.theme);
+  if (draft) document.querySelectorAll('.footer-legal a').forEach(link => {
+    const target = new URL(link.href);
+    target.searchParams.set('preview','draft');
+    link.href = target.href;
   });
-  const hasBarn = items.some(item => item.id === 'barn-2-4-5' && item.published !== false);
+  const showContact = mountContact(settings);
+  const published = items.filter(item => item.published !== false);
+  const askAbout = (item, trigger) => showContact(trigger, item);
+  mountCatalog(document.querySelector('#product-catalog'), published, {
+    onContact: askAbout,
+    onTour: openProjectTour
+  });
+  const hasBarn = items.some(item => getTourId(item) === 'barn-2-4-5' && item.published !== false);
   document.querySelectorAll('[data-barn]').forEach(node => { node.hidden = !hasBarn; });
   insideWidth = Number(settings.insideWidth) || 220;
   viewer?.setInsideWidth(insideWidth);
@@ -102,6 +118,29 @@ async function preparePage() {
     viewer?.setBedWidth(width);
   }});
   initialized = true;
+  const selectTour = document.querySelector('#tour-picker');
+  const otherTours = published.filter(item => getTourId(item) && getTourId(item) !== 'barn-2-4-5');
+  selectTour.closest('.tour-picker-row').hidden = otherTours.length === 0;
+  for (const item of otherTours) selectTour.add(new Option(item.name, item.id));
+  selectTour.addEventListener('change', () => {
+    const chosen = otherTours.find(item => item.id === selectTour.value);
+    selectTour.value = '';
+    if (chosen) openProjectTour(chosen,selectTour,askAbout);
+  });
+  if (requestedProject) {
+    const item = published.find(project => project.id === requestedProject);
+    const matchedTour = getTourId(item);
+    if (matchedTour) {
+      if (matchedTour === 'barn-2-4-5') {
+        document.querySelector('#viewer').scrollIntoView({behavior:'instant'});
+      } else {
+        const heading = document.querySelector('#catalog-heading');
+        document.querySelector('#catalog').scrollIntoView({behavior:'instant'});
+        openProjectTour(item, heading, askAbout);
+      }
+      return;
+    }
+  }
   // A direct link to the tour can arrive while the catalogue above it is loading.
   const target = ['#viewer', '#fit', '#gallery', '#about', '#visit'].includes(location.hash) && document.querySelector(location.hash);
   if (target && !target.hidden && window.scrollY < target.offsetTop + 15) target.scrollIntoView({behavior:'instant'});

@@ -19,6 +19,8 @@
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/catalog.css">
   <link rel="stylesheet" href="assets/motion.css">
+  <link rel="stylesheet" href="assets/season.css">
+  <link rel="stylesheet" href="assets/project-dialog.css">
 </head>
 <body id="top">
   <aside id="preview-status" hidden><span>Предпросмотр черновика · виден только на этом устройстве</span><a href="admin/">Вернуться в кабинет</a></aside>
@@ -71,8 +73,8 @@
     </section>
 
     <section id="catalog" class="section wrap workshop-catalog" aria-labelledby="catalog-heading">
-      <div class="section-header"><div><p class="eyebrow">Наши работы</p><h2 id="catalog-heading">Каталог мастерской</h2></div>
-        <p class="aside-text">Выберите тип постройки, чтобы посмотреть фотографии, размеры и материалы.</p></div>
+      <div class="section-header"><div><p class="eyebrow">Наши работы</p><h2 id="catalog-heading" tabindex="-1">Каталог мастерской</h2></div>
+        <p class="aside-text">Откройте проект, чтобы осмотреть постройку в 3D и сравнить её с фотографиями мастерской.</p></div>
       <div id="product-catalog"><p class="catalog-loading">Загружаем работы мастерской…</p></div>
       <noscript><p>Фотографии и описания работ доступны <a href="https://t.me/karkaswoodstroy">в канале мастерской</a>.</p></noscript>
     </section>
@@ -103,6 +105,7 @@
         </div>
         <div class="scene-foot"><span><svg class="icon"><use href="#i-orbit"/></svg>Потяните, чтобы повернуть</span><span class="model-note">3D-реконструкция по фотографиям</span></div>
       </div>
+      <div class="tour-picker-row"><label for="tour-picker">Другие постройки в 3D</label><select id="tour-picker"><option value="">Выберите модель</option></select></div>
     </section>
 
     <section id="fit" data-barn class="fit-section" aria-labelledby="fit-title"><div class="wrap">
@@ -139,7 +142,7 @@
       <div class="visit-actions"><a class="btn btn-accent" href="https://t.me/Karkaswood_ekb" data-contact><svg class="icon"><use href="#i-message"/></svg>Договориться о просмотре</a><a class="visit-phone" href="tel:+79935031990">+7 993 503-19-90</a></div>
     </div></section>
   </main>
-  <footer class="footer"><div class="wrap footer-inner"><a class="brand" href="#top" aria-label="Karkaswood, в начало"><svg aria-hidden="true"><use href="#i-mark"/></svg><span>Karkaswood</span></a><p>Каркасные модули · <span data-location-short>Косулино</span></p><a class="footer-admin" href="admin/">Кабинет мастерской</a><a data-channel href="https://t.me/karkaswoodstroy" target="_blank" rel="noopener noreferrer">Канал в Telegram</a></div></footer>
+  <footer class="footer"><div class="wrap footer-inner"><a class="brand" href="#top" aria-label="Karkaswood, в начало"><svg aria-hidden="true"><use href="#i-mark"/></svg><span>Karkaswood</span></a><p>Каркасные модули · <span data-location-short>Косулино</span></p><a class="footer-admin" href="admin/">Кабинет мастерской</a><a data-channel href="https://t.me/karkaswoodstroy" target="_blank" rel="noopener noreferrer">Канал в Telegram</a></div><nav class="wrap footer-legal" aria-label="Информация для посетителей"><a href="info/#details">Реквизиты и контакты</a><a href="info/#privacy">Обработка данных</a></nav></footer>
   <dialog class="lightbox" aria-labelledby="lightbox-title"><div class="lightbox-shell">
     <h2 id="lightbox-title">Фотография модуля</h2><button type="button" class="icon-btn lb-close" aria-label="Закрыть фотографию"><svg class="icon"><use href="#i-close"/></svg></button>
     <img class="lb-image" alt=""><div class="lb-foot"><button class="icon-btn" type="button" data-step="-1" aria-label="Предыдущее фото"><svg class="icon"><use href="#i-left"/></svg></button><span class="lb-caption" aria-live="polite"></span><button class="icon-btn" type="button" data-step="1" aria-label="Следующее фото"><svg class="icon"><use href="#i-right"/></svg></button></div>

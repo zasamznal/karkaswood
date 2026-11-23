@@ -134,3 +134,45 @@
   .kwitems-form-header h3 { font-size: 20px; }
   .kwitems-row-actions button { min-height: 44px; }
 }
+
+.kwitems-edit-grid {
+  display:grid;grid-template-columns:minmax(0,1.45fr) minmax(220px,.85fr);
+  align-items:start;gap:clamp(18px,3cqw,36px);
+}
+.kwitems-edit-fields,.kwitems-live {min-width:0}
+.kwitems-tabs {display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 20px;padding:4px;border:1px solid #dcdccc;border-radius:8px;background:#f1f2eb;width:fit-content}
+.kwitems-tabs button {min-height:37px;padding:8px 14px;border-color:transparent;background:transparent}
+.kwitems-tabs button[aria-selected="true"] {background:#2e4537;color:#fff;border-color:#2e4537}
+.kwitems-field small {color:var(--kwitems-muted);font-size:.8rem;font-weight:400;line-height:1.45}
+.kwitems-links {min-width:0;width:100%;padding:0 0 12px;border-bottom:1px solid var(--kwitems-line)}
+.kwitems-links summary,.kwitems-live>summary {cursor:pointer;line-height:1.4;font-weight:600}
+.kwitems-links summary {font-size:14px;padding:8px 0}
+.kwitems-links .kwitems-field {margin-top:12px}
+.kwitems-live {align-self:start;position:sticky;top:18px}
+.kwitems-live>summary {margin-bottom:12px;font-size:.9rem;color:#405344}
+.kwitems-card-preview {overflow:hidden;border:1px solid #ced2c5;border-radius:8px;background:#f9f8f3}
+.kwitems-card-image {position:relative}
+.kwitems-card-image .kwitems-preview {width:100%;max-width:none;aspect-ratio:1.7;border:0;border-bottom:1px solid #d5d7cc;border-radius:0;color:#645e50;font-size:.83rem;background:#e9e8dc}
+.kwitems-live-tour {position:absolute;top:10px;left:10px;padding:4px 8px;border-radius:4px;background:#fffef2ed;color:#263e2d;font-weight:550;font-size:.76rem}
+.kwitems-card-copy {display:grid;justify-items:start;gap:9px;padding:clamp(14px,2cqw,22px)}
+.kwitems-live-meta {display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:.79rem;color:#5f695e}
+.kwitems-live-meta span:not(:first-child):not(:empty)::before {content:'·';margin-right:7px}
+.kwitems-card-copy h4 {font:600 clamp(1.7rem,3.2cqw,2.9rem)/1.02 'Cormorant Garamond',Georgia,serif;letter-spacing:-.035em;color:#23392b}
+.kwitems-card-copy :is(h4,p,span) {overflow-wrap:anywhere}
+.kwitems-card-copy>strong {font-size:.91rem}
+.kwitems-card-copy p {line-height:1.5;font-size:.85rem;white-space:pre-line;color:#565c51}
+.kwitems-card-copy p:empty {display:none}
+.kwitems-card-copy .kwitems-badge {font-size:.77rem;padding:3px 7px;margin-top:4px}
+@container kwitems (max-width:730px) {
+  .kwitems-edit-grid {grid-template-columns:minmax(0,1fr);gap:20px}
+  .kwitems-live {position:static;padding:10px 12px;background:#f4f4ec;border-radius:6px}
+  .kwitems-live>summary {margin-bottom:0}
+  .kwitems-live[open]>summary {margin-bottom:12px}
+  .kwitems-card-image .kwitems-preview {max-height:220px}
+}
+@container kwitems (max-width:540px) {
+  .kwitems-tabs {display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .kwitems-tabs button {min-height:42px;padding-inline:6px}
+  .kwitems-root .kwitems-form {padding:13px}
+  .kwitems-field input,.kwitems-field select,.kwitems-field textarea {font-size:16px}
+}

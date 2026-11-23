@@ -1,0 +1,131 @@
+/* A brass star and an engraved spruce bough repeat the cabin's timber and evening lights. */
+:root[data-kw-season="newyear"] {
+  --paper: #f6f8f7;
+  --ink: #183432;
+  --muted: #4d6463;
+  --line: #cfdad6;
+  --copper: #75551f;
+  --orange: #bc9659;
+  --forest: #17443c;
+  --kw-winter-pine: #14312f;
+  --kw-winter-gold: #efcf91;
+  --kw-winter-star: polygon(50% 0,56% 36%,84% 17%,66% 44%,100% 50%,66% 56%,84% 84%,56% 65%,50% 100%,44% 65%,17% 84%,35% 56%,0 50%,35% 44%,17% 17%,44% 36%);
+  --kw-winter-bough: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='214' viewBox='0 0 256 214' fill='none' stroke='%23c4ad7b' stroke-linecap='round' stroke-linejoin='round'%3E%3Cdefs%3E%3Cg id='n'%3E%3Cpath d='M0 0Q18-3 47-18M7-2 12-15M12-4 19-20M18-6 25-24M25-9 34-25M31-12 43-26M7-2 21 1M13-4 31-1M20-7 40-6M27-10 49-11M34-13 55-16'/%3E%3C/g%3E%3C/defs%3E%3Cpath d='M255 203Q163 116 34 22M219 169Q175 116 164 70M178 132Q117 111 90 87M142 103Q107 61 102 32M99 73Q61 58 37 39'/%3E%3Cuse href='%23n' transform='translate(229 178) rotate(-144) scale(1.45)'/%3E%3Cuse href='%23n' transform='translate(217 162) rotate(-96) scale(1.32)'/%3E%3Cuse href='%23n' transform='translate(193 144) rotate(-141) scale(1.2)'/%3E%3Cuse href='%23n' transform='translate(179 130) rotate(-95) scale(1.15)'/%3E%3Cuse href='%23n' transform='translate(156 114) rotate(-143) scale(1.08)'/%3E%3Cuse href='%23n' transform='translate(142 103) rotate(-99)'/%3E%3Cuse href='%23n' transform='translate(125 92) rotate(-146) scale(.95)'/%3E%3Cuse href='%23n' transform='translate(108 78) rotate(-94) scale(.86)'/%3E%3Cuse href='%23n' transform='translate(89 66) rotate(-143) scale(.74)'/%3E%3Cuse href='%23n' transform='translate(72 52) rotate(-101) scale(.65)'/%3E%3Cuse href='%23n' transform='translate(56 40) rotate(-137) scale(.53)'/%3E%3Cuse href='%23n' transform='translate(186 121) rotate(-89) scale(.87)'/%3E%3Cuse href='%23n' transform='translate(175 99) rotate(-69) scale(.69)'/%3E%3Cuse href='%23n' transform='translate(167 80) rotate(-89) scale(.5)'/%3E%3Cuse href='%23n' transform='translate(153 122) rotate(-154) scale(.85)'/%3E%3Cuse href='%23n' transform='translate(131 112) rotate(-142) scale(.69)'/%3E%3Cuse href='%23n' transform='translate(110 100) rotate(-151) scale(.55)'/%3E%3Cuse href='%23n' transform='translate(124 82) rotate(-88) scale(.73)'/%3E%3Cuse href='%23n' transform='translate(110 57) rotate(-84) scale(.57)'/%3E%3C/svg%3E");
+}
+
+[data-kw-season="newyear"] .mast {
+  background: var(--kw-winter-pine);
+  color: #f2f6ef;
+  box-shadow: inset 0 -1px 0 #bda36b80;
+}
+[data-kw-season="newyear"] .mast .brand {color:#fcf5e5}
+[data-kw-season="newyear"] .mast .brand svg {color:var(--kw-winter-gold)}
+[data-kw-season="newyear"] .mast-nav a:is(:hover,[aria-current]) {color:#ffe0a3}
+[data-kw-season="newyear"] .mast-contact {border-color:#829084;color:#fbf6e8}
+[data-kw-season="newyear"] .mast-contact:hover {background:#284a43;border-color:#d4bd8c}
+[data-kw-season="newyear"] .mast .menu-toggle {color:#f6efde}
+[data-kw-season="newyear"] :is(.mast,.hero,.visit) :focus-visible {outline-color:#ffe5a9}
+[data-kw-season="newyear"] .kw-reading-progress {background:#e2bc79}
+
+[data-kw-season="newyear"] .hero {background:#0f282c;color:#fff9e9}
+[data-kw-season="newyear"] .hero-shade {
+  background:linear-gradient(90deg,#071c23c9,#0d252a85 34%,#112a2c0c 64%),linear-gradient(0deg,#101f2480,transparent 27%);
+}
+[data-kw-season="newyear"] .hero-place {color:#f4dcad}
+[data-kw-season="newyear"] .hero-place .icon {color:#f3cb86}
+[data-kw-season="newyear"] .hero-intro {color:#f3f4ed}
+[data-kw-season="newyear"] .hero-secondary {color:#fff9e6;border-color:#e1c78e}
+[data-kw-season="newyear"] .btn-accent {
+  color:#19312a;
+  background:linear-gradient(120deg,#f3d7a0,#e6c58b);
+  box-shadow:inset 0 1px 0 #ffedce,0 2px 9px #071a151f;
+}
+[data-kw-season="newyear"] .btn-accent:hover {background:#ffe4ac}
+[data-kw-season="newyear"] .hero-credit span {background:#ead2a1}
+
+[data-kw-season="newyear"] .eyebrow::before {
+  display:block;
+  width:15px;
+  height:15px;
+  background:#a57c3d;
+  clip-path:var(--kw-winter-star);
+}
+[data-kw-season="newyear"] .kc-filters {border-color:#c8d3ce}
+[data-kw-season="newyear"] .kc-tab {border-color:#c5d1cb}
+[data-kw-season="newyear"] .kc-tab:hover {background:#e4eee9;border-color:#98b2a7}
+[data-kw-season="newyear"] .kc-tab[aria-selected="true"] {background:#184438;border-color:#184438;color:#fffdf1}
+[data-kw-season="newyear"] .kc-card>.kc-tour {color:#163a32;background:#f8f8edea}
+[data-kw-season="newyear"] .kc-empty,
+[data-kw-season="newyear"] .fit-section {background:#e7eee9}
+[data-kw-season="newyear"] .barn-metrics {background:#e9eeeb}
+[data-kw-season="newyear"] .viewer-card {
+  background-color:#eaf0ed;
+  background-image:linear-gradient(90deg,#bbcabe4a 1px,transparent 1px),linear-gradient(#bbcabe4a 1px,transparent 1px),radial-gradient(ellipse at 50% 49%,#f8fbf7,transparent 71%);
+}
+[data-kw-season="newyear"] .visit {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  color:#faf7e9;
+  background:radial-gradient(ellipse at 74% 160%,#315346,transparent 66%),#14332e;
+  border-top:1px solid #a9925c;
+}
+[data-kw-season="newyear"] .visit::after {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  right:23%;
+  bottom:-37px;
+  width:clamp(156px,20vw,280px);
+  aspect-ratio:256 / 214;
+  background:var(--kw-winter-bough) center / contain no-repeat;
+  opacity:.32;
+  pointer-events:none;
+}
+[data-kw-season="newyear"] .visit .eyebrow {color:#ead098}
+[data-kw-season="newyear"] .visit .eyebrow::before {display:none}
+[data-kw-season="newyear"] .visit .visit-phone {color:#f3eddb}
+[data-kw-season="newyear"] .footer {background:#eef3f0}
+
+.kw-winter-snow {
+  position:absolute;
+  inset:0 0 0 44%;
+  z-index:-1;
+  overflow:hidden;
+  pointer-events:none;
+  contain:paint;
+}
+.kw-winter-snow i {
+  position:absolute;
+  left:var(--x);
+  top:var(--y);
+  width:var(--size);
+  height:var(--size);
+  border-radius:50%;
+  background:#f4f6f0;
+  opacity:0;
+}
+/* One short drift on entry. The image carries the season after it settles. */
+@media(prefers-reduced-motion:no-preference) {
+  .kw-winter-snow i {
+    animation:kw-winter-drift 4.8s linear var(--start) 1 both;
+    animation-play-state:paused;
+  }
+  .kw-winter-snow[data-playing] i {animation-play-state:running}
+}
+@keyframes kw-winter-drift {
+  0% {opacity:0;transform:translate(0,-24px)}
+  15% {opacity:.64}
+  73% {opacity:.56}
+  100% {opacity:0;transform:translate(var(--sway),62px)}
+}
+@media(max-width:720px) {
+  [data-kw-season="newyear"] .mast-nav {background:var(--kw-winter-pine);border-color:#547066}
+  [data-kw-season="newyear"] .visit::after {right:-20px;bottom:-27px;opacity:.23}
+}
+@media(max-width:540px) {
+  [data-kw-season="newyear"] .hero-shade {background:linear-gradient(0deg,#0f282c 0%,#0f282c5e 14%,transparent 35%)}
+  .kw-winter-snow {left:0;bottom:auto;height:clamp(181px,57vw,282px);z-index:0}
+  .kw-winter-snow i:nth-child(n+13) {display:none}
+}
+@media(prefers-reduced-motion:reduce), print { .kw-winter-snow {display:none} }

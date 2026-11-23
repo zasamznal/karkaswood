@@ -1,9 +1,12 @@
+import { tourTemplates } from '../assets/tour-registry.js';
+
 const categories = new Map([
   ['utility', 'Хозблоки'],
   ['bath', 'Бани'],
   ['cabin', 'Бытовки'],
   ['house', 'Дома'],
 ]);
+const tourNames = new Map(Object.entries(tourTemplates));
 const maxPhotoBytes = 150000;
 const uploadedPhoto = /^data:image\/(?:webp|jpeg);base64,[a-z\d+/]+=*$/i;
 const rubles = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 });
@@ -157,41 +160,102 @@ export function mountItems(container, { items = [], onChange } = {}) {
   }
 
   function closeEditor() {
+    clearTimeout(editor?.photoTimer);
+    const returnTo = editor?.opener;
     editor = undefined;
     panel.hidden = true;
     panel.replaceChildren();
     browser.hidden = false;
-    add.focus();
+    (returnTo?.isConnected && browser.contains(returnTo) ? returnTo : add).focus();
   }
 
   function edit(item) {
     const form = element('form', 'kwitems-form');
     form.innerHTML = `
-      <header class="kwitems-form-header"><h3></h3><button type="button" class="kwitems-back">К списку</button></header>
-      <div class="kwitems-fields">
-        <label class="kwitems-field">Название<input name="name" type="text" required maxlength="120" placeholder="Например, Барн-модуль"></label>
-        <label class="kwitems-field">Раздел<select name="category"></select></label>
-        <label class="kwitems-field">Размеры<input name="dimensions" type="text" maxlength="80" placeholder="2,4 × 5 м"></label>
-        <label class="kwitems-field">Цена, ₽<input name="price" type="number" inputmode="numeric" min="1" step="1" placeholder="Уточнить"></label>
-        <label class="kwitems-field">Ссылка на публикацию<input name="source" type="url" maxlength="2048" placeholder="https://t.me/…"></label>
-        <label class="kwitems-field kwitems-wide">Описание<textarea name="summary" rows="3" maxlength="1200" placeholder="Что важно знать покупателю"></textarea></label>
+      <header class="kwitems-form-header"><h3></h3><button type="button" class="kwitems-back">К каталогу</button></header>
+      <div class="kwitems-edit-grid">
+        <div class="kwitems-edit-fields">
+          <div class="kwitems-tabs" role="tablist" aria-label="Разделы карточки">
+            <button type="button" role="tab" aria-selected="true" data-kw-tab="main">О постройке</button>
+            <button type="button" role="tab" aria-selected="false" data-kw-tab="media" tabindex="-1">Фото и 3D</button>
+          </div>
+          <div role="tabpanel" data-kw-page="main" class="kwitems-fields">
+            <label class="kwitems-field kwitems-wide">Название<input name="name" type="text" required maxlength="120" placeholder="Например, Барн-модуль"></label>
+            <label class="kwitems-field">Раздел<select name="category"></select></label>
+            <label class="kwitems-field">Размеры<input name="dimensions" type="text" maxlength="80" placeholder="2,4 × 5 м"></label>
+            <label class="kwitems-field">Цена, ₽<input name="price" type="number" inputmode="numeric" min="1" step="1" placeholder="По запросу"></label>
+            <label class="kwitems-field kwitems-wide">Описание<textarea name="summary" rows="3" maxlength="1200" placeholder="Материалы, планировка, особенности проекта"></textarea></label>
+            <label class="kwitems-publish kwitems-wide"><input name="published" type="checkbox">Показывать в каталоге</label>
+          </div>
+          <div role="tabpanel" data-kw-page="media" class="kwitems-fields" hidden>
+            <label class="kwitems-field kwitems-wide">Фотография постройки<input name="upload" type="file" accept="image/jpeg,image/png,image/webp,image/avif"><small>JPG, PNG, WebP или AVIF до 20 МБ</small></label>
+            <div class="kwitems-photo-actions kwitems-wide"><button type="button" class="kwitems-remove-photo">Убрать фото</button><span class="kwitems-photo-status" role="status"></span></div>
+            <details class="kwitems-links kwitems-wide"><summary>Ссылка на фото и источник</summary>
+              <label class="kwitems-field">Ссылка на фото<input name="photo" type="text" maxlength="2048" placeholder="https://…"></label>
+              <label class="kwitems-field">Ссылка на публикацию<input name="source" type="url" maxlength="2048" placeholder="https://t.me/…"></label>
+            </details>
+            <label class="kwitems-field kwitems-wide">3D-модель<select name="tourId"></select><small>Выберите модель, только если постройка ей соответствует.</small></label>
+          </div>
+        </div>
+        <details class="kwitems-live">
+          <summary>Предпросмотр карточки</summary>
+          <div class="kwitems-card-preview">
+            <div class="kwitems-card-image"><div class="kwitems-preview"></div><span class="kwitems-live-tour" hidden>Обзор в 3D</span></div>
+            <div class="kwitems-card-copy">
+              <div class="kwitems-live-meta"><span data-kw-live="category"></span><span data-kw-live="dimensions"></span></div>
+              <h4 data-kw-live="name"></h4><strong data-kw-live="price"></strong>
+              <p data-kw-live="summary"></p><span class="kwitems-badge" data-kw-live="visibility"></span>
+            </div>
+          </div>
+        </details>
       </div>
-      <fieldset class="kwitems-photo"><legend>Фото карточки</legend>
-        <div class="kwitems-photo-body"><div class="kwitems-preview"></div><div class="kwitems-photo-fields">
-          <label class="kwitems-field">Ссылка на фото<input name="photo" type="text" maxlength="2048" placeholder="https://…"></label>
-          <label class="kwitems-field">Или загрузите файл<input name="upload" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label>
-          <div class="kwitems-photo-actions"><button type="button" class="kwitems-remove-photo">Убрать фото</button><span class="kwitems-photo-status" role="status"></span></div>
-        </div></div>
-      </fieldset>
-      <label class="kwitems-publish"><input name="published" type="checkbox">Показывать в каталоге</label>
       <div class="kwitems-form-actions"><button class="kwitems-primary" type="submit">Сохранить карточку</button><button type="button" class="kwitems-cancel">Отмена</button></div>`;
     const original = item || {};
     const fields = form.elements;
-    const context = { task: 0, dirty: false, photo: original.photo || '', busy: false };
+    const context = { task: 0, dirty: false, photo: original.photo || '', busy: false, opener: document.activeElement };
     editor = context;
     status.textContent = '';
     form.querySelector('h3').textContent = item ? 'Редактирование карточки' : 'Новая карточка';
     options(fields.category);
+    const inheritedTour = tourNames.has(original.id) ? original.id : '';
+    fields.tourId.add(new Option('Без 3D-модели', 'none'));
+    for (const [id, name] of tourNames) fields.tourId.add(new Option(name, id));
+    const initialTour = original.tourId === 'none' ? 'none' : original.tourId || inheritedTour;
+    fields.tourId.value = tourNames.has(initialTour) ? initialTour : 'none';
+    const tabs = Array.from(form.querySelectorAll('[data-kw-tab]'));
+    const pages = Array.from(form.querySelectorAll('[data-kw-page]'));
+    const suffix = crypto.randomUUID();
+    tabs.forEach((tab, index) => {
+      tab.id = 'kw-tab-' + suffix + index;
+      pages[index].id = 'kw-page-' + suffix + index;
+      tab.setAttribute('aria-controls', pages[index].id);
+      pages[index].setAttribute('aria-labelledby', tab.id);
+    });
+    function switchTab(key, focus = false) {
+      tabs.forEach((tab, index) => {
+        const active = tab.dataset.kwTab === key;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+        pages[index].hidden = !active;
+        if (active && focus) tab.focus();
+      });
+    }
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.kwTab));
+      tab.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const first = event.key === 'Home' || (event.key !== 'End' && tab !== tabs[0]);
+        switchTab(first ? 'main' : 'media', true);
+      });
+    });
+    form.querySelector('.kwitems-live').open = root.clientWidth > 730;
+    form.addEventListener('invalid', event => {
+      const group = event.target.closest('[data-kw-page]');
+      if (group) switchTab(group.dataset.kwPage);
+      const disclosure = event.target.closest('details');
+      if (disclosure) disclosure.open = true;
+    }, true);
     fields.category.value = categories.has(original.category) ? original.category : filter.value || 'utility';
     for (const key of ['name', 'dimensions', 'summary', 'source']) fields[key].value = original[key] || '';
     fields.price.value = original.price ?? '';
@@ -201,8 +265,26 @@ export function mountItems(container, { items = [], onChange } = {}) {
     const message = form.querySelector('.kwitems-photo-status');
     const remove = form.querySelector('.kwitems-remove-photo');
     const save = form.querySelector('button[type="submit"]');
+    const live = Object.fromEntries(Array.from(form.querySelectorAll('[data-kw-live]'), node => [node.dataset.kwLive, node]));
+    function updateCardText() {
+      live.category.textContent = categories.get(fields.category.value) || '';
+      live.dimensions.textContent = fields.dimensions.value.trim();
+      live.name.textContent = fields.name.value.trim() || 'Название постройки';
+      live.summary.textContent = fields.summary.value.trim();
+      const price = fields.price.valueAsNumber;
+      live.price.textContent = Number.isSafeInteger(price) && price > 0 ? rubles.format(price) : 'Цена по запросу';
+      live.visibility.textContent = fields.published.checked ? 'Показана в каталоге' : 'Скрыта из каталога';
+      live.visibility.classList.toggle('kwitems-visible', fields.published.checked);
+      form.querySelector('.kwitems-live-tour').hidden = !tourNames.has(fields.tourId.value);
+    }
+    updateCardText();
+    let lastPhoto;
     function updatePreview() {
-      syncImage(preview, context.photo);
+      clearTimeout(context.photoTimer);
+      if (lastPhoto !== context.photo) {
+        syncImage(preview, context.photo);
+        lastPhoto = context.photo;
+      }
       remove.disabled = !context.photo && !context.busy;
     }
     function setBusy(value) {
@@ -218,7 +300,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
       return fields.photo.validity.valid;
     }
     updatePreview();
-    form.addEventListener('input', () => { context.dirty = true; });
+    form.addEventListener('input', () => { context.dirty = true; updateCardText(); });
     fields.name.addEventListener('input', () => fields.name.setCustomValidity(''));
     fields.price.addEventListener('input', () => fields.price.setCustomValidity(''));
     fields.source.addEventListener('input', () => fields.source.setCustomValidity(''));
@@ -229,7 +311,12 @@ export function mountItems(container, { items = [], onChange } = {}) {
       context.photo = fields.photo.value.trim();
       message.textContent = '';
       applyPhotoUrl();
-      if (!context.photo) updatePreview();
+      clearTimeout(context.photoTimer);
+      if (context.photo && fields.photo.validity.valid) {
+        context.photoTimer = setTimeout(updatePreview, 250);
+      } else {
+        updatePreview();
+      }
     });
     fields.photo.addEventListener('change', updatePreview);
     fields.upload.addEventListener('change', async () => {
@@ -294,8 +381,13 @@ export function mountItems(container, { items = [], onChange } = {}) {
         source,
         published: fields.published.checked,
       };
+      const selectedTour = fields.tourId.value;
+      if (selectedTour === inheritedTour || (selectedTour === 'none' && !inheritedTour)) delete result.tourId;
+      else result.tourId = selectedTour;
       closeEditor();
-      commit(item ? records.map(record => record === item ? result : record) : [...records, result], 'Карточка сохранена.');
+      commit(item ? records.map(record => record === item ? result : record) : [...records, result], 'Карточка сохранена в черновике. Чтобы показать изменения посетителям, нажмите «Опубликовать».');
+      const savedRow = Array.from(list.children).find(row => row.dataset.record === result.id);
+      (savedRow?.querySelector('.kwitems-edit') || add).focus({ preventScroll: true });
     });
     panel.replaceChildren(form);
     panel.hidden = false;
@@ -311,13 +403,14 @@ export function mountItems(container, { items = [], onChange } = {}) {
     const fragment = document.createDocumentFragment();
     visible.forEach((item, index) => {
       const row = element('li', 'kwitems-row');
+      row.dataset.record = item.id;
       const picture = element('div', 'kwitems-thumbnail');
       syncImage(picture, item.photo);
       const body = element('div', 'kwitems-row-body');
       const title = element('h4', '', item.name || 'Без названия');
       const info = element('div', 'kwitems-meta');
       const shown = item.published !== false;
-      const badge = element('span', 'kwitems-badge' + (shown ? ' kwitems-visible' : ''), shown ? 'На сайте' : 'Скрыта');
+      const badge = element('span', 'kwitems-badge' + (shown ? ' kwitems-visible' : ''), shown ? 'Показана' : 'Скрыта');
       info.append(element('span', '', categories.get(item.category) || 'Без раздела'), badge);
       if (item.dimensions) info.append(element('span', '', item.dimensions));
       info.append(element('span', 'kwitems-price', Number.isSafeInteger(item.price) && item.price > 0
@@ -379,7 +472,18 @@ export function mountItems(container, { items = [], onChange } = {}) {
   search.addEventListener('input', changeFilter);
   renderList();
   return {
+    openNew() {
+      if (editor) return false;
+      edit();
+      return true;
+    },
+    openItem(id) {
+      const item = records.find(record => record.id === id);
+      if (editor || !item) return false;
+      edit(item);
+      return true;
+    },
     hasPendingChanges() { return Boolean(editor && (editor.dirty || editor.busy)); },
-    destroy() { editor = undefined; root.remove(); },
+    destroy() { clearTimeout(editor?.photoTimer); editor = undefined; root.remove(); },
   };
 }

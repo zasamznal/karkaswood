@@ -1,0 +1,54 @@
+:root {color-scheme:light;--paper:#f7f6ef;--ink:#24362a;--muted:#596456;--line:#d4d8ca;--accent:#95482d;--serif:"Cormorant Garamond",Georgia,serif;--sans:Inter,Arial,sans-serif;color:var(--ink);background:var(--paper);font-family:var(--sans);font-size:16px;scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;line-height:1.6}
+[hidden]{display:none!important}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{text-decoration-thickness:2px}
+a:focus-visible{outline:3px solid #b36442;outline-offset:4px}
+.wrap{width:min(1120px,calc(100% - clamp(36px,9vw,128px)));margin-inline:auto}
+.skip{position:absolute;left:12px;top:-80px;background:#fff;padding:10px;z-index:2}
+.skip:focus{top:8px}
+.masthead{border-bottom:1px solid var(--line)}
+.masthead-inner,.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:74px}
+.wordmark{display:inline-flex;align-items:center;gap:9px;font-size:1.5rem;font-weight:700;letter-spacing:-.06em;line-height:1.1;text-decoration:none;color:var(--ink);min-width:0}
+.wordmark span{overflow-wrap:anywhere}
+.wordmark img{flex:none}
+.catalog-link{padding:8px 16px;border:1px solid #bec7b9;border-radius:5px;text-decoration:none;color:var(--ink);font-size:.9rem;font-weight:550;white-space:nowrap}
+.catalog-link:hover,.toc a:hover{background:#e7eade}
+.intro{padding-block:clamp(50px,7vw,90px) clamp(28px,4vw,55px);border-bottom:1px solid var(--line)}
+h1,h2,h3,p{margin:0}
+h1,h2{font-family:var(--serif);font-weight:600;line-height:.98;letter-spacing:-.045em}
+h1{font-size:clamp(3.1rem,7.3vw,6.2rem);max-width:15ch}
+.intro p{margin-top:19px;color:var(--muted);max-width:51ch}
+.layout{display:grid;grid-template-columns:minmax(180px, .82fr) minmax(0,2fr);gap:clamp(30px,5vw,80px);align-items:start;padding-block:clamp(30px,5vw,70px) clamp(55px,6vw,85px)}
+.toc{display:grid;gap:4px;position:sticky;top:20px}
+.toc a{display:block;color:var(--ink);text-decoration:none;padding:8px 11px;border-left:2px solid var(--line);font-size:.92rem}
+.toc a[aria-current="location"]{border-color:var(--accent);background:#edece1;color:var(--accent)}
+section{scroll-margin-top:20px}
+.sections{display:grid;gap:43px;max-width:780px;min-width:0}
+.sections section+section{border-top:1px solid var(--line);padding-top:38px}
+h2{font-size:clamp(2.45rem,4.4vw,3.4rem);overflow-wrap:anywhere}
+section>p{margin-top:14px}
+h3{margin-top:25px;font-size:1.08rem;line-height:1.35;font-weight:650}
+h3+p{margin-top:6px}
+.data-list{margin:23px 0 0;padding:0;border-top:1px solid var(--line)}
+.data-list>div{display:grid;grid-template-columns:minmax(125px,.78fr) minmax(0,1.35fr);gap:18px;border-bottom:1px solid var(--line);padding:10px 0}
+.data-list dt{color:var(--muted)}
+.data-list dd{margin:0;overflow-wrap:anywhere}
+.action-line{margin-top:19px}
+.action{display:inline-flex;align-items:center;min-height:43px;background:#314b3c;color:#fff;text-decoration:none;font-size:.94rem;font-weight:550;padding:8px 16px;border-radius:4px}
+.action:hover{background:#263a2f}
+.muted,.preview{color:var(--muted);font-size:.88rem}
+.preview{background:#f0e4c8;color:#453922;padding:8px 20px;text-align:center}
+.preview a{color:inherit}
+footer{border-top:1px solid var(--line)}
+.footer-inner{min-height:70px}
+.footer-inner>a:last-child{font-size:.86rem}
+.footer-brand{font-size:1.2rem}
+@media(max-width:720px){.layout{grid-template-columns:1fr;gap:24px}.toc{position:static;display:flex;flex-wrap:wrap;gap:7px}.toc a{padding:5px 10px;border:1px solid var(--line);border-radius:4px;font-size:.86rem}.sections{gap:32px}.sections section+section{padding-top:28px}}
+@media(max-width:450px){.masthead-inner{min-height:62px}.wordmark{font-size:1.23rem}.catalog-link{padding:7px 10px}.data-list>div{display:block}.data-list dt{font-size:.84rem}.footer-inner{flex-wrap:wrap;padding-block:12px}.footer-brand{font-size:1.1rem}}
+@media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}}
+:root[data-info-season="newyear"]{--paper:#f5f7f4;--ink:#19382e;--muted:#53665d;--line:#ccd9d2;--accent:#7b5426}
+:root[data-info-season="newyear"] .masthead{background:#17382d;color:#fffaf0;border-bottom:2px solid #c6a165}
+:root[data-info-season="newyear"] .masthead .wordmark,:root[data-info-season="newyear"] .catalog-link{color:#fffaf0}
+:root[data-info-season="newyear"] .catalog-link:hover{background:#2a493c}
