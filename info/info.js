@@ -1,4 +1,5 @@
 import { getPreviewDraft, loadPublicSite } from '../assets/site-data.js';
+import { applySeason } from '../assets/season.js';
 
 const forms = {
   ip: 'Индивидуальный предприниматель',
@@ -42,7 +43,6 @@ function validEmail(value) {
 }
 
 function render(settings) {
-  document.documentElement.dataset.infoSeason = settings.theme === 'newyear' ? 'newyear' : 'classic';
   const legal = settings.legal || {};
   const brand = clean(settings.brand);
   if (brand) {
@@ -110,17 +110,25 @@ function updateAnchor() {
 }
 window.addEventListener('hashchange', updateAnchor);
 updateAnchor();
+const params = new URLSearchParams(location.search);
+const wantsDraft = params.get('preview') === 'draft';
+const requestedSeason = params.get('season');
+const seasonOverride = ['classic', 'newyear'].includes(requestedSeason) ? requestedSeason : null;
 const draft = getPreviewDraft();
-if (draft) {
-  document.getElementById('draft').hidden = false;
+if (draft) document.getElementById('draft').hidden = false;
+if (seasonOverride || draft) applySeason(draft ? draft.settings.theme : seasonOverride);
+if (wantsDraft || seasonOverride) {
   for (const anchor of document.querySelectorAll('[data-main]')) {
     const url = new URL(anchor.href);
-    url.searchParams.set('preview','draft');
+    if (wantsDraft) url.searchParams.set('preview', 'draft');
+    if (seasonOverride) url.searchParams.set('season', seasonOverride);
     anchor.href = url.href;
   }
 }
 try {
-  render((draft || await loadPublicSite()).settings);
+  const {settings} = draft || await loadPublicSite();
+  applySeason(draft ? settings.theme : (seasonOverride || settings.theme));
+  render(settings);
 } catch {
   document.getElementById('load-status').textContent = 'Не удалось загрузить контакты. Попробуйте обновить страницу.';
 }

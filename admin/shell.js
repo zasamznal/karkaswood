@@ -15,6 +15,8 @@ const panel = $('#panel');
 const accessDialog = $('#access-dialog');
 const confirmDialog = $('#confirm-dialog');
 const menuToggle = $('#menu-toggle');
+const requestedSeason = new URLSearchParams(location.search).get('season');
+const publicSeason = ['newyear','classic'].includes(requestedSeason) ? requestedSeason : null;
 let data, base, baseSha = null, baseDigest = '', scope = 'public';
 let dirty = false, owner = null, tab = '', editor = null, busy = false;
 let conflict = false, storageBlocked = false, storedStamp = null, storageConflict = false;
@@ -159,7 +161,25 @@ function setMenu(open) {
   $('#side-content').classList.toggle('is-open',open);
   menuToggle.setAttribute('aria-expanded',String(open));
 }
+function publicPage(path, season, draft=false) {
+  const url=new URL(path,location.href);
+  if (draft) url.searchParams.set('preview','draft');
+  if (season) url.searchParams.set('season',season);
+  return url.href;
+}
+$('#site-live').href=publicPage('../',publicSeason);
+$('#privacy-live').href=publicPage('../info/#privacy',publicSeason);
+
+function updateAppearance() {
+  const season=data?.settings.theme==='newyear'?'newyear':'classic';
+  document.documentElement.dataset.adminSeason=season;
+  $('meta[name="theme-color"]').content=season==='newyear'?'#183d40':'#20362a';
+  $('#preview').href=publicPage('../',season,true);
+  const legalPreview=$('#legal-preview');
+  if (legalPreview) legalPreview.href=publicPage('../info/#details',season,true);
+}
 function updateState() {
+  updateAppearance();
   $('#draft-bar').hidden=!data;
   $('#draft-bar').classList.toggle('has-draft',dirty);
   $('#mode').textContent=owner?'Режим владельца':'Деморежим';
@@ -252,7 +272,15 @@ function render(next=routeFromHash(), focus=false) {
   panel.replaceChildren();
   if (tab==='overview') overview();
   if (tab==='catalog') editor=mountItems(panel,{items:data.items,onChange:items=>changePart('items',items)});
-  if (tab==='settings') editor=mountSettings(panel,{settings:data.settings,onChange:settings=>changePart('settings',settings)});
+  if (tab==='settings') {
+    editor=mountSettings(panel,{settings:data.settings,onChange:settings=>changePart('settings',settings)});
+    const legalPreview=element('a','a-inline kw-settings__wide','Посмотреть реквизиты в черновике');
+    legalPreview.id='legal-preview';
+    legalPreview.dataset.draftLink='';
+    legalPreview.target='_blank';
+    legalPreview.rel='noopener';
+    $('#kw-legal .kw-settings__grid').append(legalPreview);
+  }
   focusSection(next,focus);
   updateState();
 }
@@ -306,7 +334,8 @@ $('#account').addEventListener('click',()=>openAccess());
 $('#status-login').addEventListener('click',()=>openAccess());
 accessDialog.querySelector('[data-close]').addEventListener('click',()=>accessDialog.close());
 accessDialog.addEventListener('close',()=>{$('#owner-password').value='';hostSession++;});
-$('#preview').addEventListener('click',event=>{
+document.addEventListener('click',event=>{
+  if (!event.target.closest('[data-draft-link]')) return;
   if (!data || busy || !readyForAction() || !storeDraft()) event.preventDefault();
 });
 async function discard(){

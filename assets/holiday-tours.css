@@ -1,0 +1,185 @@
+/* Seasonal presentation is scoped to the tour and never changes the model's building materials. */
+html[data-kw-season="newyear"] :is(#viewer, #fit, .kw-project-tour) {
+  --tour-spruce: #193d38;
+  --tour-ink: #183934;
+  --tour-muted: #47615d;
+  --tour-line: #c4d5d1;
+  --tour-frost: #f3f7f5;
+  --tour-gold: #efce91;
+}
+
+html[data-kw-season="newyear"] #viewer .barn-metrics {
+  border-color: #284b46;
+  border-top: 2px solid #c8ad7e;
+  background: linear-gradient(108deg, #133631, #203f3a 78%, #173531);
+  color: #f3f7f5;
+}
+html[data-kw-season="newyear"] #viewer .barn-metrics :is(dt, dd small) { color: #ccded8; }
+html[data-kw-season="newyear"] #viewer .barn-metrics dd { color: #f3f7f5; }
+html[data-kw-season="newyear"] #viewer .barn-metrics .icon { color: var(--tour-gold); }
+html[data-kw-season="newyear"] #viewer .metrics > div { border-color: #73918970; }
+
+html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage) {
+  isolation: isolate;
+  overflow: hidden;
+  border-color: var(--tour-line);
+  background-color: #eaf2f1;
+  background-image:
+    radial-gradient(ellipse 88% 59% at 74% 117%, #f7faf8 61%, transparent 62%),
+    radial-gradient(ellipse 91% 49% at 16% 94%, #e0ebe9 65%, transparent 66%),
+    radial-gradient(ellipse 94% 50% at 84% 83%, #f1f5f0 64%, transparent 65%),
+    radial-gradient(ellipse at 81% 30%, #fff3dc 0%, #f8f3e500 44%),
+    linear-gradient(180deg, #bdcfd1 0%, #dce8e6 41%, #eef3ec 66%, #f2f6f4 100%);
+  background-size: auto;
+}
+
+/* A distant stand of spruce sits below the model and its controls in the stacking order. */
+html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 0;
+  opacity: .48;
+  background: linear-gradient(180deg, #70938c 30%, #a1b9b1 66%, #d5e3dd 77%);
+  clip-path: polygon(
+    0 56%, 1.2% 55%, .6% 55%, 1.6% 51%, 1% 52%, 2.1% 47%, 3.2% 52%, 2.7% 51.6%, 3.7% 55%, 3.1% 54.8%, 4.1% 57%,
+    4.8% 57%, 4.4% 56.6%, 5.3% 53.3%, 4.8% 53.8%, 5.9% 49%, 7% 53.8%, 6.5% 53.3%, 7.5% 57%, 8.5% 57.5%,
+    9.4% 55%, 8.9% 55.3%, 9.9% 51.7%, 10.9% 55.3%, 10.4% 55%, 11.4% 58%, 12% 58.2%, 13.1% 55.4%, 14.2% 58.7%,
+    17% 58.4%, 17.7% 56.8%, 18.4% 58.5%, 22% 58%, 28% 59.3%, 37% 58%, 43% 58.8%, 47% 57.9%, 53% 58.8%,
+    60% 56.8%, 68% 57.3%, 74% 55.6%, 80% 56.3%, 82.2% 54.4%, 83% 55.8%,
+    84.1% 53.1%, 83.7% 53.3%, 84.6% 49.5%, 85.5% 53.3%, 85.2% 53.1%, 86.1% 56%, 87% 55%,
+    88.1% 52%, 87.6% 52.4%, 88.8% 47.7%, 90% 52.4%, 89.5% 52%, 90.6% 55.2%, 91.1% 54.9%,
+    92.2% 51.2%, 91.8% 51.6%, 92.9% 47.3%, 92.4% 47.6%, 93.6% 42%, 94.8% 47.6%, 94.2% 47.3%, 95.4% 51.6%,
+    94.9% 51.2%, 96.1% 54.6%, 96.8% 54.8%, 97.8% 52%, 97.4% 52.2%, 98.3% 48.3%, 99.3% 52.2%, 98.9% 52%, 100% 55%,
+    100% 59.1%, 89% 58.2%, 78% 59.2%, 68% 59.7%, 56% 60%, 44% 61.2%, 31% 61.1%, 19% 61.9%, 8% 60.4%, 0 61%
+  );
+}
+html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 18px 31px, #fff 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 78px 51px, #ffffffe8 0 .8px, transparent 1.5px),
+    radial-gradient(circle at 42px 62px, #fff9e9d9 0 .9px, transparent 1.7px);
+  background-size: 145px 111px, 181px 129px, 231px 157px;
+  mask-image: linear-gradient(#0009, #000b 35%, transparent 90%);
+}
+@keyframes kw-tour-snow {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 0 111px, 0 129px, 0 157px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage)::after {
+    animation: kw-tour-snow 12s linear infinite;
+    animation-play-state: paused;
+  }
+  html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage):has([data-kw-view-active])::after { animation-play-state: running; }
+}
+html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage):has([data-kw-view="plan"]) {
+  background-color: #edf4f0;
+  background-image: linear-gradient(#88aaa61f 1px, transparent 1px), linear-gradient(90deg, #88aaa61f 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage):has([data-kw-view="plan"])::before,
+html[data-kw-season="newyear"] :is(#viewer .viewer-card, .kw-project-tour .kw-tour-stage):has([data-kw-view="plan"])::after { display: none; }
+html[data-kw-season="newyear"] .kw-project-tour .kw-tour-stage:has(.kw-tour-photo:not([hidden]))::after {
+  animation: none;
+  visibility: hidden;
+}
+
+html[data-kw-season="newyear"] :is(#viewer .viewer-tabs, .kw-project-tour .kw-tour-switch) {
+  background: #f8fbf8ef;
+  border-color: #adbfba;
+  box-shadow: 0 2px 9px #29443f18;
+}
+html[data-kw-season="newyear"] :is(#viewer .viewer-tabs button, .kw-project-tour .kw-tour-mode, .kw-project-tour .kw-tour-view) { color: #36544d; }
+html[data-kw-season="newyear"] :is(#viewer .viewer-tabs button, .kw-project-tour .kw-tour-mode, .kw-project-tour .kw-tour-view)[aria-pressed="true"] {
+  background: var(--tour-spruce);
+  color: #fff;
+}
+html[data-kw-season="newyear"] :is(#viewer .scene-tools .icon-btn, .kw-project-tour .kw-tour-tool, .kw-project-tour .kw-tour-close) {
+  border-color: #b1c3bd;
+  background: #f5f9f6f2;
+  color: var(--tour-ink);
+}
+html[data-kw-season="newyear"] :is(#viewer .scene-tools .icon-btn, .kw-project-tour .kw-tour-tool)[aria-pressed="true"] {
+  background: var(--tour-spruce); color: #fff;
+}
+html[data-kw-season="newyear"] #viewer .scene-foot { color: #39554f; }
+html[data-kw-season="newyear"] #viewer .tour-picker-row select { background-color: var(--tour-frost); border-color: #afc2bc; color: var(--tour-ink); }
+html[data-kw-season="newyear"] .kw-project-tour {
+  --kt-ink: var(--tour-ink);
+  --kt-accent: #785526;
+  --kt-muted: var(--tour-muted);
+  --kt-line: var(--tour-line);
+  --kt-paper: #f6f8f4;
+  border-color: #afc3bc;
+}
+html[data-kw-season="newyear"] .kw-project-tour::backdrop { background: #0a2424c9; }
+html[data-kw-season="newyear"] .kw-project-tour .kw-tour-header { background: #f7f9f4fa; border-top: 2px solid #b99b67; }
+html[data-kw-season="newyear"] .kw-project-tour :is(.kw-tour-visual-foot, .kw-tour-photo) { background-color: #e7efeb; }
+html[data-kw-season="newyear"] .kw-project-tour .kw-tour-contact { background: #913f43; }
+html[data-kw-season="newyear"] .kw-project-tour .kw-tour-contact:hover { background: #733236; }
+
+html[data-kw-season="newyear"] #fit {
+  background: radial-gradient(ellipse at 8% 0, #f6f8f2, transparent 61%), #e6efeb;
+}
+html[data-kw-season="newyear"] #fit .fit-root {
+  --fit-ink: var(--tour-ink);
+  --fit-muted: var(--tour-muted);
+  --fit-accent: #1d4941;
+  --fit-paper: #edf4f0;
+}
+html[data-kw-season="newyear"] #fit .fit-layout {
+  border-color: #afc5bc;
+  background: #e0ece6;
+  box-shadow: 0 8px 30px #23483e0c;
+}
+html[data-kw-season="newyear"] #fit .fit-drawing {
+  background-color: #dfece6;
+  background-image:
+    linear-gradient(#69968c33 1px, transparent 1px), linear-gradient(90deg, #69968c33 1px, transparent 1px),
+    linear-gradient(#85a89c29 1px, transparent 1px), linear-gradient(90deg, #85a89c29 1px, transparent 1px),
+    radial-gradient(ellipse at 44% 40%, #f4f7ec, transparent 83%);
+  background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px, 100% 100%;
+}
+html[data-kw-season="newyear"] #fit .fit-controls {
+  border-color: #47645a;
+  color: #f4f8ec;
+  background: radial-gradient(ellipse at 93% 6%, #305448 0%, transparent 66%), linear-gradient(140deg, #193d38, #102e2b);
+}
+html[data-kw-season="newyear"] #fit .fit-result { border-color: #76948787; }
+html[data-kw-season="newyear"] #fit .fit-value { color: #efce91; }
+html[data-kw-season="newyear"] #fit .fit-value small { color: #e1eadc; }
+html[data-kw-season="newyear"] #fit .fit-note { color: #d1e1d8; }
+html[data-kw-season="newyear"] #fit .fit-choice span { color: #f4f8ec; border-color: #91aaa0; background: #284b40; }
+html[data-kw-season="newyear"] #fit .fit-choice:hover span { background: #365d4f; border-color: #f0d5a3; }
+html[data-kw-season="newyear"] #fit .fit-choice input:checked + span {
+  color: #19352e; background: #efce91; border-color: #f5dba8;
+}
+html[data-kw-season="newyear"] #fit .fit-choice input:focus-visible + span { outline-color: #fff9e7; }
+html[data-kw-season="newyear"] #fit .fit-swatch-bed { border-color: #648679; background: #a4bbac; }
+html[data-kw-season="newyear"] #fit .fit-swatch-pass {
+  border-color: #67988c;
+  background: repeating-linear-gradient(135deg, #dcece2 0 3px, #98b8aa 3px 4px);
+}
+html[data-kw-season="newyear"] #fit .fit-plan [fill="#f4f1e9"] { fill: #e4eee6; }
+html[data-kw-season="newyear"] #fit .fit-plan [fill="#f8f5ec"] { fill: #f4f6ec; }
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#e3ddce"] { stroke: #d7decd; }
+html[data-kw-season="newyear"] #fit .fit-plan [fill="#625d50"] { fill: #3b554b; }
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#625d50"] { stroke: #3b554b; }
+html[data-kw-season="newyear"] #fit .fit-plan [fill="#d9c8ac"] { fill: #a4bbac; }
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#a59175"],
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#b7a485"] { stroke: #718f7e; }
+html[data-kw-season="newyear"] #fit .fit-plan [fill="#f2e0cb"] { fill: #dcece2; }
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#d8b393"] { stroke: #98b8aa; }
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#b27f5d"] { stroke: #568573; }
+html[data-kw-season="newyear"] #fit .fit-plan [stroke="#924328"] { stroke: #2a5c4e; }
+html[data-kw-season="newyear"] #fit .fit-plan [fill="#833d26"] { fill: #194f40; }
+@media (max-width: 620px) {
+  html[data-kw-season="newyear"] #viewer .scene { inset: 36px 0 61px; }
+}

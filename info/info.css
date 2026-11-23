@@ -48,7 +48,42 @@ footer{border-top:1px solid var(--line)}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:24px}.toc{position:static;display:flex;flex-wrap:wrap;gap:7px}.toc a{padding:5px 10px;border:1px solid var(--line);border-radius:4px;font-size:.86rem}.sections{gap:32px}.sections section+section{padding-top:28px}}
 @media(max-width:450px){.masthead-inner{min-height:62px}.wordmark{font-size:1.23rem}.catalog-link{padding:7px 10px}.data-list>div{display:block}.data-list dt{font-size:.84rem}.footer-inner{flex-wrap:wrap;padding-block:12px}.footer-brand{font-size:1.1rem}}
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}}
-:root[data-info-season="newyear"]{--paper:#f5f7f4;--ink:#19382e;--muted:#53665d;--line:#ccd9d2;--accent:#7b5426}
-:root[data-info-season="newyear"] .masthead{background:#17382d;color:#fffaf0;border-bottom:2px solid #c6a165}
-:root[data-info-season="newyear"] .masthead .wordmark,:root[data-info-season="newyear"] .catalog-link{color:#fffaf0}
-:root[data-info-season="newyear"] .catalog-link:hover{background:#2a493c}
+
+/* The catalogue's winter light continues on the buyer's information sheet. */
+:root[data-kw-season="newyear"]{--paper:#f3f4ed;--ink:#1b3730;--muted:#4d6055;--line:#ccd5c9;--accent:#71501e}
+[data-kw-season="newyear"] .masthead{background:#16352f;color:#fff8e8;border-bottom-color:#a58c59}
+[data-kw-season="newyear"] .masthead .wordmark,[data-kw-season="newyear"] .masthead .catalog-link{color:#fff8e8}
+[data-kw-season="newyear"] .catalog-link{border-color:#8e9b85}
+[data-kw-season="newyear"] .catalog-link:hover{background:#2c4940}
+[data-kw-season="newyear"] .masthead a:focus-visible,[data-kw-season="newyear"] footer a:focus-visible{outline-color:#f3d99e}
+[data-kw-season="newyear"] .intro{
+  isolation:isolate;position:relative;overflow:hidden;
+  margin-top:clamp(16px,3.5vw,42px);border:1px solid #366050;border-bottom:3px solid #b49b67;
+  padding:clamp(32px,5vw,66px);border-radius:5px;
+  color:#fffbeb;background-color:#18342c;
+  background-image:linear-gradient(90deg,#132c26 1%,#17352cfb 28%,#19382feb 43%,#18362e99 66%,#14342b24 100%),url('../assets/winter-hero.webp');
+  background-position:center,center 47%;background-size:cover;
+}
+[data-kw-season="newyear"] .intro h1{position:relative;max-width:14ch;font-size:clamp(3.25rem,6.4vw,5.45rem);text-wrap:balance}
+[data-kw-season="newyear"] .intro p{position:relative;color:#f0f0df;max-width:39ch}
+[data-kw-season="newyear"] .toc a[aria-current="location"]{border-color:#aa8b50;background:#e7e9dc;color:#584016}
+[data-kw-season="newyear"] .action{background:#244b3d;color:#fffbef;box-shadow:inset 0 -2px #b5a176}
+[data-kw-season="newyear"] .action:hover{background:#163a30}
+[data-kw-season="newyear"] .sections{gap:22px}
+[data-kw-season="newyear"] .sections section{
+  padding:clamp(20px,3vw,37px);
+  background:#fbfaf3;border:1px solid #d4d9ca;border-left:3px solid #b6a274;border-radius:3px;
+}
+[data-kw-season="newyear"] .data-list{border-color:#aebaad}
+[data-kw-season="newyear"] .data-list>div:nth-child(even){background:#f3f4eb}
+[data-kw-season="newyear"] footer{color:#f4efda;border-top:2px solid #b9a375;background:#17382f}
+[data-kw-season="newyear"] footer a{color:#f4efda}
+@media(max-width:720px){
+  [data-kw-season="newyear"] .intro{padding:clamp(20px,5vw,36px);padding-top:clamp(46px,8.5vw,80px);background-position:center,65% 30%}
+  [data-kw-season="newyear"] .intro h1{font-size:clamp(2.75rem,8.8vw,4.2rem)}
+}
+@media(max-width:450px){
+  [data-kw-season="newyear"] .intro{padding:clamp(15px,4.2vw,22px);padding-top:clamp(68px,19vw,96px);background-image:linear-gradient(0deg,#133027 5%,#17352ded 56%,#17352d64 85%,#17352d35),url('../assets/winter-hero.webp');background-position:center,70% 23%}
+  [data-kw-season="newyear"] .sections section{padding:19px 15px}
+  [data-kw-season="newyear"] .intro p{margin-top:13px}
+}

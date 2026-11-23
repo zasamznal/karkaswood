@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import { createProjectGeometry } from './project-geometry.js';
+import { seasonalGround } from './seasonal-ground.js';
 
 const { clamp, smoothstep } = THREE.MathUtils;
 const WALLS = { front: [0, 1], back: [0, -1], left: [-1, 0], right: [1, 0] };
@@ -77,11 +78,12 @@ function groupGeometry(model) {
   return { groups, min, max };
 }
 
-function makeWebGL(canvas, geometry) {
+function makeWebGL(canvas, geometry, winter) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
   renderer.setClearColor(0xffffff, 0);
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene(), camera = new THREE.OrthographicCamera(-4, 4, 3, -3, 0.05, 160);
+  scene.add(winter.mesh);
   const textureMaps = new Map(), meshes = [];
   for (const type of materials) {
     const image = textureImage(type);
@@ -161,7 +163,7 @@ function makeWebGL(canvas, geometry) {
 }
 
 // A small orthographic z-buffer draws the same panels, openings and furniture on Canvas2D.
-function makeCanvas(canvas, geometry) {
+function makeCanvas(canvas, geometry, winter) {
   const ctx = canvas.getContext('2d');
   const layer = document.createElement('canvas'), layerCtx = layer.getContext('2d');
   const light = new THREE.Vector3(-1, 1.5, 1.25).normalize(), tint = new THREE.Color();
@@ -210,6 +212,7 @@ function makeCanvas(canvas, geometry) {
         return [(horizontal - view.left) * px, (view.top - y * view.cp + radial * view.sp) * py, radial * view.cp + y * view.sp];
       };
       ctx.clearRect(0, 0, w, h);
+      winter.paint(ctx, project);
       const [x0, y0, z0] = geometry.min, [x1, , z1] = geometry.max;
       const [cx, cy] = project((x0 + x1) / 2 + 0.08, y0 - 0.01, (z0 + z1) / 2 - 0.08);
       const lx = (x1 - x0) * 0.61, lz = (z1 - z0) * 0.73;
@@ -248,14 +251,16 @@ function makeCanvas(canvas, geometry) {
 }
 
 export function mountProjectViewer(container, definition) {
+  container.dataset.kwView = 'outside';
   const model = createProjectGeometry(definition), geometry = groupGeometry(model);
+  const winter = seasonalGround(geometry.min, geometry.max);
   const floor = Number.isFinite(model.floor) ? model.floor : 0.24;
   const initialYaw = Number.isFinite(definition.cameraYaw) ? definition.cameraYaw : (definition.front === 'end' ? -1.05 : -0.55);
   const modelHeight = geometry.max[1] - geometry.min[1];
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let canvas = document.createElement('canvas'), engine, gl = false;
-  try { engine = makeWebGL(canvas, geometry); gl = true; }
-  catch { canvas = document.createElement('canvas'); engine = makeCanvas(canvas, geometry); }
+  try { engine = makeWebGL(canvas, geometry, winter); gl = true; }
+  catch { canvas = document.createElement('canvas'); engine = makeCanvas(canvas, geometry, winter); }
   const pointers = new Map();
   let mode = 'outside', yaw = initialYaw, pitch = 0.38, goalYaw = yaw, goalPitch = pitch;
   let zoom = 1, opening = 0, plan = 0, auto = false, visible = true, disposed = false;
@@ -323,7 +328,7 @@ export function mountProjectViewer(container, definition) {
   }
   function setView(next) {
     if (!['outside', 'inside', 'plan'].includes(next)) return;
-    mode = next; reset();
+    mode = next; container.dataset.kwView = next; reset();
   }
   function rotate(radians) {
     if (!Number.isFinite(radians)) return;
@@ -376,7 +381,7 @@ export function mountProjectViewer(container, definition) {
     setAutoRotate(false); pointers.clear();
     const focused = document.activeElement === canvas, replacement = document.createElement('canvas');
     engine.dispose(); canvas.replaceWith(replacement); canvas = replacement; gl = false;
-    engine = makeCanvas(canvas, geometry); bindCanvas(); resize();
+    engine = makeCanvas(canvas, geometry, winter); bindCanvas(); resize();
     if (focused) canvas.focus({ preventScroll: true });
   }
   function bindCanvas() {
@@ -389,6 +394,7 @@ export function mountProjectViewer(container, definition) {
     if (gl) canvas.addEventListener('webglcontextlost', lost, { once: true });
   }
   function visibility() {
+    container.toggleAttribute('data-kw-view-active', !document.hidden && visible);
     previousFrame = 0;
     if (document.hidden || !visible) { setAutoRotate(false); cancelAnimationFrame(frame); frame = 0; }
     else schedule();
@@ -396,15 +402,16 @@ export function mountProjectViewer(container, definition) {
   const motionChange = () => { if (motion.matches) setAutoRotate(false); schedule(); };
   const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null;
   const visibilityObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; visibility(); }) : null;
-  bindCanvas(); container.appendChild(canvas);
+  bindCanvas(); container.appendChild(canvas); winter.watch(schedule); visibility();
   observer?.observe(container); visibilityObserver?.observe(container); window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', visibility); motion.addEventListener('change', motionChange); resize();
   return { setView, rotate, reset, resize, setAutoRotate,
     dispose() {
       if (disposed) return;
+      delete container.dataset.kwView; container.removeAttribute('data-kw-view-active');
       setAutoRotate(false); disposed = true; cancelAnimationFrame(frame); observer?.disconnect(); visibilityObserver?.disconnect();
       window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', visibility);
-      motion.removeEventListener('change', motionChange); pointers.clear(); engine.dispose(); canvas.remove();
+      motion.removeEventListener('change', motionChange); pointers.clear(); engine.dispose(); winter.dispose(); canvas.remove();
     },
   };
 }

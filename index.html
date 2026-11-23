@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-kw-season="newyear">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f7f6ef">
+  <script src="assets/season-start.js"></script>
   <meta name="robots" content="noindex,nofollow">
   <title>Karkaswood — каркасная мастерская в Косулине</title>
   <meta name="description" content="Каталог бань, хозблоков и бытовок Karkaswood с фотографиями мастерской. Осмотрите барн-модуль в 3D и договоритесь о просмотре в Косулине.">
@@ -21,6 +22,9 @@
   <link rel="stylesheet" href="assets/motion.css">
   <link rel="stylesheet" href="assets/season.css">
   <link rel="stylesheet" href="assets/project-dialog.css">
+  <link rel="stylesheet" href="assets/holiday-catalog.css">
+  <link rel="stylesheet" href="assets/holiday-tours.css">
+  <link rel="stylesheet" href="assets/holiday-story.css">
 </head>
 <body id="top">
   <aside id="preview-status" hidden><span>Предпросмотр черновика · виден только на этом устройстве</span><a href="admin/">Вернуться в кабинет</a></aside>
@@ -59,7 +63,22 @@
   </header>
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
-      <img class="hero-image" src="assets/hero.webp" width="2061" height="763" fetchpriority="high" alt="Визуализация барн-модуля на лесном участке: деревянный торец и стены из графитового профлиста">
+      <img class="hero-image" width="2061" height="763" fetchpriority="high" data-classic-src="assets/hero.webp" data-newyear-src="assets/winter-hero.webp" data-classic-alt="Визуализация барн-модуля на лесном участке с деревянным торцом и стенами из графитового профлиста" data-newyear-alt="Зимняя визуализация барн-модуля в Косулине с венком на двери и тёплой подсветкой крыши" alt="">
+      <script>
+        {
+          const photo = document.currentScript.previousElementSibling;
+          const season = document.documentElement.dataset.kwSeason || 'classic';
+          photo.addEventListener('error', () => {
+            if (photo.getAttribute('src') === photo.dataset.newyearSrc) {
+              photo.src = photo.dataset.classicSrc;
+              photo.alt = photo.dataset.classicAlt;
+            }
+          });
+          photo.src = photo.dataset[season + 'Src'];
+          photo.alt = photo.dataset[season + 'Alt'];
+        }
+      </script>
+      <noscript><style>.hero-image[data-classic-src]{display:none}</style><img class="hero-image" src="assets/winter-hero.webp" width="2061" height="763" alt="Зимняя визуализация барн-модуля с подсветкой"></noscript>
       <div class="hero-shade"></div>
       <div class="wrap hero-inner">
         <div class="hero-copy">

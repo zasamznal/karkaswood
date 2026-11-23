@@ -1,36 +1,4 @@
-const winterImage = new URL('./winter-hero.webp', import.meta.url).href;
-const winterAlt = 'Зимняя визуализация барн-модуля на заснеженном участке в Косулине';
-let revertWinter;
-
-function restoreAttribute(element, name, value) {
-  if (value === null) element.removeAttribute(name);
-  else element.setAttribute(name, value);
-}
-
-function useWinterImage(image) {
-  const src = image.getAttribute('src');
-  const srcset = image.getAttribute('srcset');
-  const alt = image.getAttribute('alt');
-  const photo = new Image();
-  let applied = false;
-
-  // The summer image stays in place on a slow connection or if the winter image is unavailable.
-  photo.onload = () => {
-    image.removeAttribute('srcset');
-    image.src = winterImage;
-    image.alt = winterAlt;
-    applied = true;
-  };
-  photo.src = winterImage;
-
-  return () => {
-    photo.onload = null;
-    if (!applied) return;
-    restoreAttribute(image, 'srcset', srcset);
-    restoreAttribute(image, 'src', src);
-    restoreAttribute(image, 'alt', alt);
-  };
-}
+let removeSnow;
 
 function addSnow(hero) {
   const snow = document.createElement('div');
@@ -66,26 +34,23 @@ function addSnow(hero) {
 }
 
 export function applySeason(theme) {
-  if (theme !== 'newyear') {
-    revertWinter?.();
-    revertWinter = undefined;
-    return;
-  }
-  if (revertWinter) return;
+  const winter = theme === 'newyear';
   const root = document.documentElement;
   const hero = document.querySelector('.hero');
-  const image = hero?.querySelector('.hero-image');
+  const image = hero?.querySelector('[data-classic-src]');
+  if (winter) root.dataset.kwSeason = 'newyear';
+  else delete root.dataset.kwSeason;
+  if (image) {
+    const key = winter ? 'newyear' : 'classic';
+    const src = image.dataset[key + 'Src'];
+    if (image.getAttribute('src') !== src) image.src = src;
+    image.alt = image.dataset[key + 'Alt'];
+  }
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  const oldColor = themeColor?.getAttribute('content');
-  root.dataset.kwSeason = 'newyear';
-  if (themeColor) themeColor.content = '#14312f';
-
-  const restoreImage = image ? useWinterImage(image) : null;
-  const removeSnow = hero ? addSnow(hero) : null;
-  revertWinter = () => {
+  if (themeColor) themeColor.content = winter ? '#14312f' : '#f7f6ef';
+  if (winter && hero && !removeSnow) removeSnow = addSnow(hero);
+  if (!winter) {
     removeSnow?.();
-    restoreImage?.();
-    if (themeColor) restoreAttribute(themeColor, 'content', oldColor);
-    delete root.dataset.kwSeason;
-  };
+    removeSnow = undefined;
+  }
 }

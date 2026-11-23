@@ -12,7 +12,7 @@ const pageParameters = new URLSearchParams(location.search);
 const seasonalPreview = pageParameters.get('season');
 const requestedProject = pageParameters.get('project');
 mountMotion();
-if (seasonalPreview === 'newyear' && pageParameters.get('preview') !== 'draft') applySeason('newyear');
+applySeason(document.documentElement.dataset.kwSeason);
 
 function syncIdentity(settings) {
   const text = (selector, value) => {
@@ -95,11 +95,21 @@ async function preparePage() {
   const {settings, items} = snapshot;
   syncIdentity(settings);
   applySeason(!draft && ['classic','newyear'].includes(seasonalPreview) ? seasonalPreview : settings.theme);
-  if (draft) document.querySelectorAll('.footer-legal a').forEach(link => {
-    const target = new URL(link.href);
-    target.searchParams.set('preview','draft');
-    link.href = target.href;
-  });
+  const explicitSeason = ['classic','newyear'].includes(seasonalPreview);
+  if (draft || explicitSeason) {
+    document.querySelectorAll('.footer-legal a').forEach(link => {
+      const target = new URL(link.href);
+      if (draft) target.searchParams.set('preview','draft');
+      if (explicitSeason) target.searchParams.set('season',seasonalPreview);
+      link.href = target.href;
+    });
+  }
+  if (explicitSeason) {
+    const cabinetLink = document.querySelector('.footer-admin');
+    const target = new URL(cabinetLink.href);
+    target.searchParams.set('season', seasonalPreview);
+    cabinetLink.href = target.href;
+  }
   const showContact = mountContact(settings);
   const published = items.filter(item => item.published !== false);
   const askAbout = (item, trigger) => showContact(trigger, item);

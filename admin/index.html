@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../assets/fonts/fonts.css">
   <link rel="stylesheet" href="./admin.css">
   <link rel="stylesheet" href="./settings.css">
+  <link rel="stylesheet" href="./holiday.css">
 </head>
 <body>
   <svg class="ui-symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -48,7 +49,7 @@
           <a class="a-subnav" href="#settings/legal" data-nav="settings/legal"><svg class="a-icon" aria-hidden="true"><use href="#a-doc"/></svg>Реквизиты</a>
         </nav>
         <div class="a-side-lower">
-          <a href="../" target="_blank" rel="noopener" class="a-side-link"><svg class="a-icon" aria-hidden="true"><use href="#a-link"/></svg>Сайт для покупателей</a>
+          <a id="site-live" href="../" target="_blank" rel="noopener" class="a-side-link"><svg class="a-icon" aria-hidden="true"><use href="#a-link"/></svg>Сайт для покупателей</a>
           <button id="account" type="button" class="a-account"><svg class="a-icon" aria-hidden="true"><use href="#a-lock"/></svg><span>Вход владельца</span></button>
         </div>
       </div>
@@ -57,7 +58,7 @@
       <header class="a-topbar">
         <p id="workspace-label">Панель мастерской</p>
         <div class="a-top-actions">
-          <a class="a-btn a-secondary" id="preview" href="../?preview=draft" target="_blank" rel="noopener"><svg class="a-icon" aria-hidden="true"><use href="#a-eye"/></svg>Предпросмотр</a>
+          <a class="a-btn a-secondary" id="preview" data-draft-link href="../?preview=draft" target="_blank" rel="noopener"><svg class="a-icon" aria-hidden="true"><use href="#a-eye"/></svg>Предпросмотр</a>
           <button type="button" id="publish" class="a-btn a-primary" disabled><svg class="a-icon" aria-hidden="true"><use href="#a-cloud"/></svg>Опубликовать</button>
         </div>
       </header>
@@ -75,7 +76,7 @@
     <h2 id="access-title">Вход владельца</h2>
     <div id="signed-out">
       <p>Войдите, чтобы изменения увидели покупатели. В деморежиме вы можете редактировать и просматривать черновик на своём устройстве.</p>
-      <p><a class="a-inline" href="../info/#privacy" target="_blank" rel="noopener noreferrer">Как сайт обрабатывает данные</a></p>
+      <p><a id="privacy-live" class="a-inline" href="../info/#privacy" target="_blank" rel="noopener noreferrer">Как сайт обрабатывает данные</a></p>
       <form id="login-form">
         <label for="owner-password">Пароль мастерской</label>
         <input id="owner-password" type="password" autocomplete="current-password" required name="password">

@@ -113,6 +113,8 @@ export function openProjectTour(item, trigger, onContact) {
   if (/^https?:$/.test(location.protocol) && !localHost && new URLSearchParams(location.search).get('preview')!=='draft'){
     shareURL=new URL(location.pathname,location.origin);
     shareURL.searchParams.set('project',item.id);
+    const season = new URLSearchParams(location.search).get('season');
+    if (season === 'classic' || season === 'newyear') shareURL.searchParams.set('season', season);
     copyLink=button('kw-tour-share','link','Скопировать ссылку');copyLink.dataset.tourShare='';
     linkFeedback=el('p','kw-tour-share-feedback');linkFeedback.setAttribute('role','status');
     linkField=el('input','kw-tour-link-field');linkField.type='url';linkField.readOnly=true;linkField.hidden=true;

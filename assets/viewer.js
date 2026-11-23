@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
+import { seasonalGround } from './seasonal-ground.js';
 
 // The shell follows the advertised footprint. Openings and furnishings illustrate one layout.
 const LENGTH = 5;
@@ -312,7 +313,7 @@ function createModel(scene) {
 }
 
 // A projected canvas rendering retains the same model and controls on devices without WebGL2.
-function softwareRenderer(canvas, model) {
+function softwareRenderer(canvas, model, winter) {
   const ctx = canvas.getContext('2d');
   const layer = document.createElement('canvas'), layerCtx = layer.getContext('2d');
   const p = new THREE.Vector3(), n = new THREE.Vector3(), eye = new THREE.Vector3(), tint = new THREE.Color();
@@ -363,7 +364,12 @@ function softwareRenderer(canvas, model) {
       pixels = layerCtx.createImageData(w, h); zBuffer = new Float32Array(w * h);
     },
     render(camera) {
-      ctx.clearRect(0, 0, w, h); ctx.save();
+      ctx.clearRect(0, 0, w, h);
+      winter.paint(ctx, (x, y, z) => {
+        p.set(x, y, z).project(camera);
+        return [(p.x + 1) * w / 2, (1 - p.y) * h / 2];
+      });
+      ctx.save();
       p.set(0.10, -0.03, 0.12).project(camera);
       ctx.translate((p.x + 1) * w / 2, (1 - p.y) * h / 2);
       const scale = h / (camera.top - camera.bottom);
@@ -414,7 +420,10 @@ const presets = {
 };
 
 export function mountViewer(container) {
+  container.dataset.kwView = 'outside';
   const scene = new THREE.Scene();
+  const winter = seasonalGround([-LENGTH / 2, 0, -WIDTH / 2], [LENGTH / 2, RIDGE, WIDTH / 2]);
+  scene.add(winter.mesh);
   const model = createModel(scene);
   const camera = new THREE.OrthographicCamera(-4, 4, 3, -3, 0.1, 70);
   let canvas = document.createElement('canvas'), renderer, fallback;
@@ -426,7 +435,7 @@ export function mountViewer(container) {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   } catch {
     canvas = document.createElement('canvas');
-    fallback = softwareRenderer(canvas, model);
+    fallback = softwareRenderer(canvas, model, winter);
   }
   canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;outline-offset:-3px';
   canvas.tabIndex = 0;
@@ -547,7 +556,7 @@ export function mountViewer(container) {
   }
   function setView(view) {
     if (!Object.prototype.hasOwnProperty.call(presets, view)) return;
-    setAutoRotate(false, 'view'); mode = view; reset();
+    setAutoRotate(false, 'view'); mode = view; container.dataset.kwView = view; reset();
   }
   function rotate(delta) { const amount = Number(delta); if (Number.isFinite(amount)) { setAutoRotate(false, 'interaction'); turn += amount; queue(); } }
   const pointers = new Map();
@@ -591,7 +600,7 @@ export function mountViewer(container) {
     const focused = document.activeElement === canvas;
     const replacement = canvas.cloneNode(false);
     canvas.replaceWith(replacement); canvas = replacement; canvas.style.cursor = 'grab';
-    renderer.dispose(); renderer = undefined; fallback = softwareRenderer(canvas, model);
+    renderer.dispose(); renderer = undefined; fallback = softwareRenderer(canvas, model, winter);
     bindCanvas(); resize();
     if (focused) canvas.focus({ preventScroll: true });
   }
@@ -602,13 +611,14 @@ export function mountViewer(container) {
     if (renderer) canvas.addEventListener('webglcontextlost', contextLost, { once: true });
   }
   function visibility() {
+    container.toggleAttribute('data-kw-view-active', !document.hidden && inViewport);
     lastTime = 0;
     if (document.hidden || !inViewport) {
       setAutoRotate(false, document.hidden ? 'hidden' : 'offscreen'); cancelAnimationFrame(frame); frame = 0;
     } else queue();
   }
   function motionChange() { if (motion.matches) setAutoRotate(false, 'reduced-motion'); queue(); }
-  bindCanvas(); motion.addEventListener('change', motionChange);
+  bindCanvas(); winter.watch(queue); visibility(); motion.addEventListener('change', motionChange);
   document.addEventListener('visibilitychange', visibility);
   const visibilityObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver(([entry]) => {
     inViewport = entry.isIntersecting; visibility();
@@ -626,8 +636,10 @@ export function mountViewer(container) {
       setAutoRotate(false, 'interaction'); insideWidth = value; model.setRoomWidth(value); queue();
     },
     dispose() {
+      delete container.dataset.kwView; container.removeAttribute('data-kw-view-active');
       disposed = true; cancelAnimationFrame(frame); observer?.disconnect(); visibilityObserver?.disconnect(); window.removeEventListener('resize', resize);
       motion.removeEventListener('change', motionChange); document.removeEventListener('visibilitychange', visibility);
+      winter.dispose();
       scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
       model.materials.forEach(m => m.dispose()); model.grain.dispose(); model.osb.dispose(); model.glazing.dispose();
       sun.shadow.dispose(); ground.material.dispose(); renderer?.dispose(); canvas.remove();

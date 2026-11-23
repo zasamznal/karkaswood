@@ -1,0 +1,259 @@
+/* The winter scenes follow the workshop's photographs into its drawings and evening visiting light. */
+[data-kw-season="newyear"] #gallery {
+  --story-gold: #e5bd77;
+  --story-margin: max(calc((100% - 1440px) / 2), clamp(21px, 4.5vw, 80px));
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding: clamp(58px, 7vw, 108px) var(--story-margin) clamp(43px, 5vw, 78px);
+  border-block: 1px solid #7a7460;
+  color: #faf6e9;
+  background: radial-gradient(ellipse at 85% 0, #354a44 0, transparent 48%),
+              linear-gradient(110deg, #16342f, #102625 78%);
+}
+[data-kw-season="newyear"] #gallery::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: 0 max(16%, var(--story-margin)) auto auto;
+  width: 105px;
+  height: 79px;
+  background:
+    radial-gradient(circle at 29% 74%, #fff1c7 0 1px, #d2ae70 2px 4px, #a7783f 5px 8px, transparent 9px),
+    radial-gradient(circle at 76% 55%, #ffe3b7 0 1px, #ac5847 2px 4px, #873e38 5px 7px, transparent 8px),
+    linear-gradient(#b99e6b, #b99e6b) 29% 0 / 1px 69% no-repeat,
+    linear-gradient(#9a8d65, #9a8d65) 76% 0 / 1px 52% no-repeat;
+}
+[data-kw-season="newyear"] #gallery .eyebrow { color: #e9c78c; }
+[data-kw-season="newyear"] #gallery .eyebrow::before { background: #e7c07c; }
+[data-kw-season="newyear"] #gallery h2,
+[data-kw-season="newyear"] #visit h2 { color: #fff8e8; text-wrap: balance; }
+[data-kw-season="newyear"] #gallery .section-header { margin-bottom: clamp(23px, 2.5vw, 42px); }
+[data-kw-season="newyear"] #gallery .gallery-nav .icon-btn,
+[data-kw-season="newyear"] .lightbox .icon-btn {
+  border: 1px solid #b9ac83;
+  color: #fff1cf;
+  background: #25423b;
+  border-radius: 50%;
+}
+[data-kw-season="newyear"] #gallery .gallery-nav .icon-btn:disabled { opacity: .48; }
+[data-kw-season="newyear"] #gallery .photo-strip {
+  scrollbar-color: #ac9470 #2c4440;
+  padding: 3px 2px 17px;
+  scroll-padding-inline: 2px;
+}
+[data-kw-season="newyear"] #gallery .photo {
+  background: #f2efe1;
+  color: #20342e;
+  border: 1px solid #c2b699;
+  border-radius: 3px;
+  padding: 6px 6px 0;
+  box-shadow: 0 4px 9px #071a1629;
+}
+[data-kw-season="newyear"] #gallery .photo > span:first-child { border-radius: 1px; }
+[data-kw-season="newyear"] #gallery .photo-label { padding: 12px 7px 13px; gap: 8px; }
+[data-kw-season="newyear"] #gallery .photo-label .icon { color: #776039; }
+[data-kw-season="newyear"] #gallery .source-link {
+  margin-top: 13px;
+  color: #ebdab6;
+  text-decoration-color: #a99066;
+}
+[data-kw-season="newyear"] #gallery :focus-visible,
+[data-kw-season="newyear"] .lightbox :focus-visible { outline: 3px solid #ffdb87; outline-offset: 2px; }
+[data-kw-season="newyear"] .lightbox {
+  background: #172d2c;
+  border: 1px solid #9c8b63;
+  color: #f7f1df;
+}
+[data-kw-season="newyear"] .lightbox::backdrop { background: #07191aec; }
+[data-kw-season="newyear"] .lightbox .lb-foot { padding: 11px 2px 2px; }
+[data-kw-season="newyear"] .lightbox .lb-close { background: #122b29f2; }
+
+[data-kw-season="newyear"] #about {
+  border-block: 1px solid #c4c9ba;
+  padding-block: clamp(57px, 6.5vw, 105px);
+  color: #233b37;
+  background-color: #eef1e9;
+  background-image: linear-gradient(90deg,#758e8010 1px,transparent 1px),
+                    linear-gradient(#758e8010 1px,transparent 1px),
+                    radial-gradient(ellipse at 0 0, #fffdf1, transparent 60%);
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+}
+[data-kw-season="newyear"] #about .technical-grid {
+  grid-template-columns: minmax(0,.84fr) minmax(0,1.16fr);
+  gap: clamp(35px, 6vw, 104px);
+  align-items: center;
+}
+[data-kw-season="newyear"] #about .technical-grid > div:first-child::after {
+  content: "";
+  display: block;
+  width: min(100%, 278px);
+  height: clamp(86px, 8.5vw, 143px);
+  margin-top: 23px;
+  border: 1px solid #a49c86;
+  border-left: 4px solid #9b743e;
+  border-radius: 1px;
+  background: #a39176 url('photos/cladding.webp') center 40% / cover no-repeat;
+}
+[data-kw-season="newyear"] #about .eyebrow { color: #715326; }
+[data-kw-season="newyear"] #about .aside-text { color: #4e625b; }
+[data-kw-season="newyear"] #about .specs {
+  background: #fcfcf3f5;
+  border-top: 3px solid #9b7949;
+  padding: 0 clamp(15px, 2.2vw, 34px);
+  box-shadow: 0 1px 0 #c4cbbc;
+}
+[data-kw-season="newyear"] #about .specs > div {
+  padding-block: clamp(15px, 1.45vw, 23px);
+  border: 0;
+  border-bottom: 1px solid #cbd0bf;
+}
+[data-kw-season="newyear"] #about .specs > div:last-child { border-bottom: 0; }
+[data-kw-season="newyear"] #about .specs dt { color: #50615a; }
+[data-kw-season="newyear"] #about .specs dd { color: #203834; }
+
+[data-kw-season="newyear"] #visit {
+  position: relative;
+  isolation: isolate;
+  background: #11272c;
+  padding-block: clamp(68px, 8vw, 130px);
+  border-top: 1px solid #c4a265;
+}
+[data-kw-season="newyear"] #visit::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  opacity: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #101f26ef 0%, #122a2dd9 27%, #122b2da8 43%, #132b2c24 69%, transparent 83%),
+    linear-gradient(0deg,#0e2124a3,transparent 39%),
+    url('winter-evening.webp') center 56% / cover no-repeat;
+}
+[data-kw-season="newyear"] #visit .visit-grid {
+  grid-template-columns: minmax(0, min(61%, 680px)) minmax(0, 1fr);
+  gap: clamp(24px, 2.4vw, 40px) 0;
+}
+[data-kw-season="newyear"] #visit h2 { max-width: 12ch; }
+[data-kw-season="newyear"] #visit .visit-grid > div { grid-column: 1; }
+[data-kw-season="newyear"] #visit .eyebrow { color: #f2d89e; }
+[data-kw-season="newyear"] #visit p:not(.eyebrow) { color: #e8eee4; max-width: 425px; }
+[data-kw-season="newyear"] #visit .visit-actions {
+  flex-flow: row wrap;
+  justify-self: start;
+  align-items: center;
+  gap: 14px 21px;
+}
+[data-kw-season="newyear"] #visit .btn-accent {
+  color: #233126;
+  background: linear-gradient(110deg, #f5dda6, #dfbb78);
+  border: 1px solid #efcf97;
+}
+[data-kw-season="newyear"] #visit .visit-phone { color: #fcf3d9; text-decoration-color: #bfa974; }
+
+[data-kw-season="newyear"] .footer {
+  color: #ecefe6;
+  background: #102328;
+  border-top: 1px solid #74735c;
+}
+[data-kw-season="newyear"] .footer .brand,
+[data-kw-season="newyear"] .footer [data-channel] { color: #f3f2df; }
+[data-kw-season="newyear"] .footer .brand svg { color: #dfbd7e; }
+[data-kw-season="newyear"] .footer-inner p,
+[data-kw-season="newyear"] .footer-admin,
+[data-kw-season="newyear"] .footer-legal a { color: #c8d5ce; }
+[data-kw-season="newyear"] .footer-legal { border-color: #405451; }
+[data-kw-season="newyear"] .footer a:focus-visible { outline: 3px solid #f7d99b; outline-offset: 3px; }
+
+[data-kw-season="newyear"] dialog.kw-contact-dialog {
+  color: #1e3935;
+  border-radius: 11px;
+  border: 1px solid #998963;
+  border-top: 4px solid #b69a62;
+  background: #fbfaf1;
+  box-shadow: 0 23px 75px #071b1b55;
+}
+[data-kw-season="newyear"] dialog.kw-contact-dialog::backdrop { background: #091c20bb; }
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-heading {
+  font-family: var(--serif);
+  font-size: clamp(34px, 6vw, 44px);
+  font-weight: 600;
+  line-height: .98;
+  color: #203a32;
+}
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-desc { color: #51635a; }
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-close { color: #344d42; }
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-message {
+  border: 1px solid #cdd2bc;
+  border-left: 3px solid #a7864d;
+  border-radius: 3px;
+  background: #eef1e4;
+}
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-copy { color: #735426; }
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-primary {
+  background: #25483c;
+  color: #fff8e4;
+}
+[data-kw-season="newyear"] .kw-contact-dialog .kw-contact-phone { color: #2b4338; }
+[data-kw-season="newyear"] .kw-contact-dialog :focus-visible { outline: 3px solid #8d6229; outline-offset: 3px; }
+
+@media (hover: hover) {
+  [data-kw-season="newyear"] #gallery .photo:hover { border-color: #efd294; }
+  [data-kw-season="newyear"] #gallery .icon-btn:not(:disabled):hover,
+  [data-kw-season="newyear"] .lightbox .icon-btn:hover { background: #3a5a4c; }
+  [data-kw-season="newyear"] #visit .btn-accent:hover { background: #ffe4a8; }
+  [data-kw-season="newyear"] .footer a:hover { color: #ffe0a0; }
+  [data-kw-season="newyear"] .kw-contact-dialog .kw-contact-primary:hover { background: #17372e; }
+}
+@media (max-width: 720px) {
+  [data-kw-season="newyear"] #gallery { --story-margin: 20px; }
+  [data-kw-season="newyear"] #gallery::before { right: 31px; width: 77px; height: 47px; }
+  [data-kw-season="newyear"] #gallery .gallery-nav { gap: 7px; }
+  [data-kw-season="newyear"] #gallery .gallery-nav .icon-btn { width: 40px; height: 40px; }
+  [data-kw-season="newyear"] #about .technical-grid { grid-template-columns: minmax(0,1fr); gap: 23px; }
+  [data-kw-season="newyear"] #about .technical-grid > div:first-child {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) clamp(66px,19vw,114px);
+    align-items: start;
+    column-gap: 14px;
+  }
+  [data-kw-season="newyear"] #about .technical-grid > div:first-child > * { grid-column: 1; }
+  [data-kw-season="newyear"] #about .technical-grid > div:first-child::after {
+    grid-area: 1 / 2 / 4 / 3;
+    align-self: stretch;
+    width: auto;
+    height: auto;
+    min-height: 95px;
+    margin: 0;
+    border: 1px solid #a49c86;
+    border-top: 3px solid #9b743e;
+  }
+  [data-kw-season="newyear"] #about h2 { font-size: clamp(2.55rem, 9vw, 3.8rem); }
+  [data-kw-season="newyear"] #about h2 br { display: inline; }
+  [data-kw-season="newyear"] #about .specs > div { gap: 10px; padding-block: 14px; }
+  [data-kw-season="newyear"] #visit { padding: clamp(155px,39vw,234px) 0 44px; }
+  [data-kw-season="newyear"] #visit::after {
+    bottom: auto;
+    height: clamp(190px,47vw,280px);
+    background:
+      linear-gradient(0deg,#11272c 0%,#11272ca6 17%,transparent 54%),
+      url('winter-evening.webp') 83% 51% / cover no-repeat;
+  }
+  [data-kw-season="newyear"] #visit .visit-grid { grid-template-columns: minmax(0,1fr); gap: 26px; }
+  [data-kw-season="newyear"] #visit h2 { max-width: 15ch; }
+  [data-kw-season="newyear"] #visit .visit-actions { gap: 13px 18px; }
+}
+@media (max-width: 410px) {
+  [data-kw-season="newyear"] #visit .visit-actions { flex-direction: column; align-items: flex-start; }
+  [data-kw-season="newyear"] #gallery .photo-label { font-size: .91rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-kw-season="newyear"] #gallery .photo img { transform: none; }
+  [data-kw-season="newyear"] :is(#gallery,#visit,.lightbox,.kw-contact-dialog) :is(button,a,img) { transition: none; }
+}

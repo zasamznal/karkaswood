@@ -1,0 +1,218 @@
+/* Seasonal paper, brass rules and dark timber mats frame the workshop's original photographs. */
+html[data-kw-season="newyear"] .workshop-catalog {
+  --kw-cat-pine: #173b34;
+  --kw-cat-deep: #102e29;
+  --kw-cat-gold: #e2c58c;
+  --kw-cat-brass: #8a6a36;
+  --kw-cat-paper: #fafbf8;
+  --kw-cat-rule: #c8c6ad;
+  position: relative;
+  isolation: isolate;
+}
+[data-kw-season="newyear"] .workshop-catalog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(155deg,#f1f6f2 0%,#f7f8f2 59%,#f2f6f3);
+  box-shadow: 0 0 0 100vmax #f3f6f2;
+  clip-path: inset(0 -100vmax);
+}
+[data-kw-season="newyear"] .workshop-catalog .section-header {position:relative}
+[data-kw-season="newyear"] .kc-filters {
+  position: relative;
+  gap: 7px;
+  padding-bottom: 23px;
+  border-bottom: 0;
+}
+[data-kw-season="newyear"] .kc-filters::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg,#9c8c65,#c6c7b2 36%,#ccd6cf);
+  pointer-events: none;
+}
+[data-kw-season="newyear"] .kc-tab {
+  min-height: 44px;
+  background: #f9faf5;
+  border-color: #b9c7bd;
+  color: #23443a;
+}
+[data-kw-season="newyear"] .kc-tab[aria-selected="true"] {
+  color: #fff5d9;
+  background: var(--kw-cat-pine);
+  border-color: #304c3e;
+  box-shadow: inset 0 -2px 0 #bb9e68;
+}
+[data-kw-season="newyear"] .kc-grid {align-items:stretch}
+[data-kw-season="newyear"] .kc-card {
+  border: 1px solid #81988b;
+  border-radius: 7px;
+  background: var(--kw-cat-pine);
+  box-shadow: 0 5px 14px #1f3a2d0d;
+}
+[data-kw-season="newyear"] .kc-card-open {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+}
+[data-kw-season="newyear"] .kc-visual {
+  flex: none;
+  border: 5px solid #f6f7ee;
+  border-bottom-width: 4px;
+  border-radius: 6px 6px 0 0;
+  background: #dce6df;
+}
+[data-kw-season="newyear"] .kc-card-info {
+  display: block;
+  flex: 1;
+  width: 100%;
+  padding: clamp(16px,1.65vw,25px) clamp(52px,4.6vw,72px) clamp(20px,1.85vw,30px) clamp(15px,1.5vw,25px);
+  border-block-start: 1px solid #b59c6e;
+  border-radius: 0 0 6px 6px;
+  color: #fffaf0;
+  background: linear-gradient(110deg,#23483e,var(--kw-cat-deep));
+}
+[data-kw-season="newyear"] .kc-card-info .kc-kind {color:#f3d697; font-size:.75rem}
+[data-kw-season="newyear"] .kc-card-info .kc-size {color:#e0e8dc; font-size:.84rem}
+[data-kw-season="newyear"] .kc-card-info .kc-size::before {border-color:#9fac93}
+[data-kw-season="newyear"] .kc-card-info .kc-name {font-size:clamp(1.85rem,2.48vw,2.85rem); line-height:1.02}
+[data-kw-season="newyear"] .kc-card-info .kc-price {color:#f5db9f}
+[data-kw-season="newyear"] .kc-open-arrow {
+  width: 34px;
+  height: 34px;
+  top: clamp(19px,1.8vw,28px);
+  right: clamp(13px,1.5vw,24px);
+  border-color: #a0ac8f;
+  color: #f2dba5;
+}
+[data-kw-season="newyear"] .kc-card > .kc-tour {
+  top: 15px;
+  left: 15px;
+  min-height: 37px;
+  border: 1px solid #d4bf8b;
+  border-radius: 3px;
+  background: #17382fee;
+  color: #fff5dc;
+  box-shadow: 0 2px 7px #071c1766;
+  letter-spacing: .005em;
+}
+[data-kw-season="newyear"] .kc-card > .kc-tour .kc-icon {color:#f0ce8c}
+[data-kw-season="newyear"] .kc-more {
+  min-height: 46px;
+  margin-top: 30px;
+  padding-inline: 23px;
+  border-color: #84988c;
+  background: #f9faf5;
+  color: #234639;
+}
+[data-kw-season="newyear"] .kc-empty {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(120deg,#23463c,#13362f);
+  border: 1px solid #507363;
+  border-inline-start: 4px solid #c5a76c;
+  border-radius: 6px;
+}
+[data-kw-season="newyear"] .kc-empty h3 {color:#fff8e5}
+[data-kw-season="newyear"] .kc-empty p {color:#e1eadf}
+[data-kw-season="newyear"] .kc-empty .kc-contact {
+  background: #efcf90;
+  color: #192f26;
+}
+[data-kw-season="newyear"] .kc-dialog {
+  border: 1px solid #a09878;
+  border-radius: 9px;
+  background: var(--kw-cat-paper);
+  box-shadow: 0 24px 76px #071d1ad4;
+}
+[data-kw-season="newyear"] .kc-dialog::backdrop {background:#0b211dc9}
+[data-kw-season="newyear"] .kc-detail > img {
+  border-bottom: 2px solid #ae925a;
+  background: radial-gradient(ellipse at center,#365648,#1b3930);
+}
+[data-kw-season="newyear"] .kc-description {color:#183a30}
+[data-kw-season="newyear"] .kc-description > .kc-kind {color:#71501e;letter-spacing:.15em}
+[data-kw-season="newyear"] .kc-description > .kc-kind::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-inline-end: 7px;
+  background: #9a732f;
+  clip-path: var(--kw-winter-star);
+}
+[data-kw-season="newyear"] .kc-facts {border-color:var(--kw-cat-rule)}
+[data-kw-season="newyear"] .kc-facts dd {font-weight:600}
+[data-kw-season="newyear"] .kc-actions .kc-contact {color:#fff4d8;background:var(--kw-cat-pine)}
+[data-kw-season="newyear"] .kc-actions .kc-tour {
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid #9aa99b;
+  border-radius: 4px;
+  background: transparent;
+  color: #234438;
+  text-decoration: none;
+}
+[data-kw-season="newyear"] .kc-close {color:#203c30;border-color:#bda87b;background:#faf7e9}
+[data-kw-season="newyear"] .kc-root :is(button,a):focus-visible {
+  outline: 3px solid #916316;
+  outline-offset: 3px;
+}
+[data-kw-season="newyear"] .kc-card > .kc-tour:focus-visible {
+  outline-color: #ffda89;
+  box-shadow: 0 0 0 3px #163c30;
+}
+
+@media(min-width:1080px) {
+  [data-kw-season="newyear"] .workshop-catalog .section-header::after {
+    content: "";
+    position: absolute;
+    right: clamp(330px,30%,480px);
+    bottom: -2px;
+    z-index: -1;
+    width: clamp(75px,8vw,130px);
+    aspect-ratio: 256 / 214;
+    background: var(--kw-winter-bough) center / contain no-repeat;
+    opacity: .54;
+    pointer-events: none;
+  }
+  [data-kw-season="newyear"] .kc-empty::after {
+    content:"";
+    position:absolute;
+    inset:auto 23% -32px auto;
+    z-index:-1;
+    width: 160px;
+    aspect-ratio:256 / 214;
+    background:var(--kw-winter-bough) center / contain no-repeat;
+    opacity:.2;
+    pointer-events:none;
+  }
+}
+@media(hover:hover) and (pointer:fine) {
+  [data-kw-season="newyear"] .kc-card:hover {border-color:#a38c5c;box-shadow:0 7px 18px #133e3224}
+  [data-kw-season="newyear"] .kc-card-open:hover .kc-open-arrow,
+  [data-kw-season="newyear"] .kc-card-open:focus-visible .kc-open-arrow {background:#f0d69f;color:#17382d;border-color:#f0d69f}
+  [data-kw-season="newyear"] .kc-card > .kc-tour:hover {background:#0b2920;color:#fff7e3}
+  [data-kw-season="newyear"] .kc-more:hover {background:#e4ece3;border-color:#7a8e80}
+  [data-kw-season="newyear"] .kc-empty .kc-contact:hover {background:#ffe1a6}
+  [data-kw-season="newyear"] .kc-actions .kc-contact:hover {background:#285345}
+  [data-kw-season="newyear"] .kc-actions .kc-tour:hover {background:#e6eee6}
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  [data-kw-season="newyear"] .kc-card {transition:border-color .2s ease-out,box-shadow .2s ease-out}
+}
+@media(max-width:590px) {
+  [data-kw-season="newyear"] .kc-filters {padding-bottom:16px;gap:6px}
+  [data-kw-season="newyear"] .kc-tab {min-height:42px;padding-inline:13px}
+  [data-kw-season="newyear"] .kc-grid {row-gap:18px}
+  [data-kw-season="newyear"] .kc-card-info {padding:15px 52px 19px 15px}
+  [data-kw-season="newyear"] .kc-open-arrow {top:19px;right:13px}
+  [data-kw-season="newyear"] .kc-card > .kc-tour {top:12px;left:12px;min-height:41px}
+  [data-kw-season="newyear"] .kc-facts {grid-template-columns:auto 1fr;gap:6px 14px;font-size:.94rem}
+}
