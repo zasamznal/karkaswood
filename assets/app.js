@@ -1,7 +1,40 @@
 import { mountContact } from './contact.js';
 import { mountFit } from './fit.js';
 
-mountContact();
+import { mountCatalog } from './catalog.js';
+import { mountMotion } from './motion.js';
+import { getPreviewDraft, loadPublicSite } from './site-data.js';
+
+mountMotion();
+
+function syncIdentity(settings) {
+  const text = (selector, value) => {
+    if (typeof value === 'string') document.querySelectorAll(selector).forEach(node => { node.textContent = value; });
+  };
+  text('.brand span', settings.brand);
+  text('#hero-title', settings.heading);
+  text('.hero-intro', settings.intro);
+  text('[data-location]', settings.location);
+  text('[data-location-short]', settings.location?.split(',')[0]);
+  if (settings.brand && settings.heading) document.title = settings.brand + ' — ' + settings.heading;
+  document.querySelectorAll('.brand').forEach(el => el.setAttribute('aria-label', (settings.brand || 'Мастерская') + ', в начало'));
+  const channel = document.querySelector('[data-channel]');
+  channel.hidden = !/^https:\/\/t\.me\/[A-Za-z0-9_]+$/.test(settings.channel);
+  if (!channel.hidden) channel.href = settings.channel;
+  const phone = document.querySelector('.visit-phone');
+  phone.hidden = !/^\+[1-9]\d{6,14}$/.test(settings.phone);
+  if (!phone.hidden) {
+    phone.href = 'tel:' + settings.phone;
+    phone.textContent = settings.phone.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4');
+  }
+  document.querySelectorAll('a[data-contact]').forEach(el => {
+    const telegram = /^https:\/\/t\.me\/[A-Za-z0-9_]+$/.test(settings.telegram);
+    if (telegram) el.href = settings.telegram;
+    else if (!phone.hidden) el.href = phone.href;
+    else el.hidden = true;
+  });
+}
+
 
 const menu = document.querySelector('.mast-nav');
 const menuToggle = document.querySelector('.menu-toggle');
@@ -31,21 +64,60 @@ let viewer;
 let viewerTask;
 let desiredView = 'outside';
 let width = 140;
-let calculatorReady = false;
-mountFit(document.querySelector('#fit-calculator'), {
-  onChange({bedWidth}) {
-    width = bedWidth;
-    if (calculatorReady) document.documentElement.dataset.selectedBedWidth = String(width);
-    viewer?.setBedWidth(width);
-  }
+let insideWidth = 220;
+const orbit = document.querySelector('[data-auto]');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let autoActive = false;
+function updateOrbit() {
+  orbit.disabled = desiredView === 'plan' || reducedMotion.matches;
+  orbit.setAttribute('aria-pressed', String(autoActive));
+  orbit.setAttribute('aria-label', autoActive ? 'Остановить вращение' : 'Включить автоматическое вращение');
+}
+model.addEventListener('viewer:autorotate', event => { autoActive = event.detail.active; updateOrbit(); });
+reducedMotion.addEventListener('change', updateOrbit);
+updateOrbit();
+orbit.addEventListener('click', async () => {
+  const current = viewer || await loadModel();
+  if (current) autoActive = current.setAutoRotate(!autoActive);
+  updateOrbit();
 });
-calculatorReady = true;
+async function preparePage() {
+  const draft = getPreviewDraft();
+  const snapshot = draft || await loadPublicSite();
+  document.querySelector('#preview-status').hidden = !draft;
+  const {settings, items} = snapshot;
+  syncIdentity(settings);
+  const showContact = mountContact(settings);
+  mountCatalog(document.querySelector('#product-catalog'), items.filter(item => item.published !== false), {
+    onContact: (item, trigger) => showContact(trigger, item)
+  });
+  const hasBarn = items.some(item => item.id === 'barn-2-4-5' && item.published !== false);
+  document.querySelectorAll('[data-barn]').forEach(node => { node.hidden = !hasBarn; });
+  insideWidth = Number(settings.insideWidth) || 220;
+  viewer?.setInsideWidth(insideWidth);
+  let initialized = false;
+  mountFit(document.querySelector('#fit-calculator'), {insideWidth, onChange({bedWidth}) {
+    width = bedWidth;
+    if (initialized) document.documentElement.dataset.selectedBedWidth = String(width);
+    viewer?.setBedWidth(width);
+  }});
+  initialized = true;
+  // A direct link to the tour can arrive while the catalogue above it is loading.
+  const target = ['#viewer', '#fit', '#gallery', '#about', '#visit'].includes(location.hash) && document.querySelector(location.hash);
+  if (target && !target.hidden && window.scrollY < target.offsetTop + 15) target.scrollIntoView({behavior:'instant'});
+}
+preparePage().catch(() => {
+  const area = document.querySelector('#product-catalog');
+  area.innerHTML = '<p>Каталог временно не загрузился. <a href="https://t.me/karkaswoodstroy">Посмотреть работы в Telegram</a></p>';
+  mountContact();
+});
 
 function loadModel() {
   if (!viewerTask) {
     viewerTask = import('./viewer.js').then(({mountViewer}) => {
       model.replaceChildren();
       viewer = mountViewer(model);
+      viewer.setInsideWidth(insideWidth);
       viewer.setBedWidth(width);
       viewer.setView(desiredView);
       return viewer;
@@ -68,6 +140,7 @@ if (typeof IntersectionObserver === 'function') {
 
 tabs.forEach(button => button.addEventListener('click', () => {
   desiredView = button.dataset.view;
+  updateOrbit();
   tabs.forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
   if (viewer) viewer.setView(desiredView);
   else loadModel();

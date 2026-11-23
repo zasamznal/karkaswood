@@ -5,13 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f7f6ef">
   <meta name="robots" content="noindex,nofollow">
-  <title>Барн-модуль 2,4 × 5 м в Косулине — Karkaswood</title>
-  <meta name="description" content="Осмотрите барн-модуль Karkaswood в 3D, примерьте кровать на плане и договоритесь о просмотре в Косулине.">
+  <title>Karkaswood — каркасная мастерская в Косулине</title>
+  <meta name="description" content="Каталог бань, хозблоков и бытовок Karkaswood с фотографиями мастерской. Осмотрите барн-модуль в 3D и договоритесь о просмотре в Косулине.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Karkaswood — каркасная мастерская">
+  <meta property="og:description" content="Бани, хозблоки и бытовки из Косулина. Фотографии готовых работ, интерактивный барн-модуль и примерка планировки.">
+  <meta property="og:url" content="https://zasamznal.github.io/karkaswood/">
+  <meta property="og:image" content="https://zasamznal.github.io/karkaswood/assets/share-cover.jpg">
+  <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/catalog.css">
+  <link rel="stylesheet" href="assets/motion.css">
 </head>
 <body id="top">
+  <aside id="preview-status" hidden><span>Предпросмотр черновика · виден только на этом устройстве</span><a href="admin/">Вернуться в кабинет</a></aside>
   <a class="skip-link" href="#main">К содержанию</a>
   <svg xmlns="http://www.w3.org/2000/svg" class="symbols" aria-hidden="true">
     <defs>
@@ -40,7 +50,7 @@
   <header class="mast">
     <div class="wrap mast-inner">
       <a href="#top" class="brand" aria-label="Karkaswood, в начало"><svg aria-hidden="true"><use href="#i-mark"/></svg><span>Karkaswood</span></a>
-      <nav class="mast-nav" aria-label="Основное меню" id="main-nav"><a href="#about">О модуле</a><a href="#viewer">3D-обзор</a><a href="#fit">Планировка</a><a href="#gallery">Фотографии</a></nav>
+      <nav class="mast-nav" aria-label="Основное меню" id="main-nav"><a href="#catalog">Каталог</a><a href="#viewer" data-barn>3D-обзор</a><a href="#fit" data-barn>Планировка</a><a href="#visit">Контакты</a></nav>
       <a class="mast-contact" href="https://t.me/Karkaswood_ekb" data-contact><svg class="icon"><use href="#i-message"/></svg><span>Связаться</span></a>
       <button class="menu-toggle icon-btn" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="main-nav"><svg class="icon"><use href="#i-menu"/></svg></button>
     </div>
@@ -51,27 +61,33 @@
       <div class="hero-shade"></div>
       <div class="wrap hero-inner">
         <div class="hero-copy">
-          <p class="hero-place"><svg class="icon"><use href="#i-pin"/></svg>Косулино, Свердловская область</p>
-          <h1 id="hero-title">Барн-модуль<br><span>2,4 × 5 м</span></h1>
-          <p class="hero-intro">Загляните внутрь и примерьте кровать до&nbsp;поездки на&nbsp;производство.</p>
-          <div class="hero-actions"><a class="btn btn-accent" href="#viewer"><svg class="icon"><use href="#i-cube"/></svg>Осмотреть в 3D</a><a class="hero-secondary" href="#gallery"><svg class="icon"><use href="#i-photo"/></svg>Смотреть фото</a></div>
+          <p class="hero-place"><svg class="icon"><use href="#i-pin"/></svg><span data-location>Косулино, Свердловская область</span></p>
+          <h1 id="hero-title">Каркасная мастерская</h1>
+          <p class="hero-intro">Бани, бытовки и хозблоки из Косулина. Посмотрите готовые работы или обсудите дом для своего участка.</p>
+          <div class="hero-actions"><a class="btn btn-accent" href="#catalog"><svg class="icon"><use href="#i-layers"/></svg>Выбрать проект</a><a class="hero-secondary" href="#viewer" data-barn><svg class="icon"><use href="#i-cube"/></svg>Осмотреть в 3D</a></div>
         </div>
       </div>
-      <div class="hero-credit"><span aria-hidden="true"></span>Визуализация на участке</div>
+      <div class="hero-credit"><span aria-hidden="true"></span>Барн-модуль · визуализация на участке</div>
     </section>
 
-    <div class="metric-bar" aria-label="Размеры и утепление модуля"><dl class="wrap metrics">
+    <section id="catalog" class="section wrap workshop-catalog" aria-labelledby="catalog-heading">
+      <div class="section-header"><div><p class="eyebrow">Наши работы</p><h2 id="catalog-heading">Каталог мастерской</h2></div>
+        <p class="aside-text">Выберите тип постройки, чтобы посмотреть фотографии, размеры и материалы.</p></div>
+      <div id="product-catalog"><p class="catalog-loading">Загружаем работы мастерской…</p></div>
+      <noscript><p>Фотографии и описания работ доступны <a href="https://t.me/karkaswoodstroy">в канале мастерской</a>.</p></noscript>
+    </section>
+    <section class="section wrap feature-viewer" id="viewer" data-barn aria-labelledby="viewer-title">
+      <div class="section-header">
+        <div><p class="eyebrow">Интерактивный обзор</p><h2 id="viewer-title">Барн-модуль в 3D</h2></div>
+        <p class="aside-text">Поверните модуль, снимите стену или посмотрите на&nbsp;план сверху.</p>
+      </div>
+    <div class="metric-bar barn-metrics" aria-label="Размеры и утепление модуля"><dl class="metrics">
       <div><svg class="icon"><use href="#i-ruler"/></svg><dt>Длина модуля</dt><dd>5 <small>м</small></dd></div>
       <div><svg class="icon"><use href="#i-width"/></svg><dt>Ширина снаружи</dt><dd>2,4 <small>м</small></dd></div>
       <div><svg class="icon"><use href="#i-height"/></svg><dt>Высота модуля</dt><dd>2,5 <small>м</small></dd></div>
       <div><svg class="icon"><use href="#i-layers"/></svg><dt>Слой утепления</dt><dd>100 <small>мм</small></dd></div>
     </dl></div>
 
-    <section class="section wrap" id="viewer" aria-labelledby="viewer-title">
-      <div class="section-header">
-        <div><p class="eyebrow">Интерактивный обзор</p><h2 id="viewer-title">Модуль в 3D</h2></div>
-        <p class="aside-text">Поверните модуль, снимите стену или посмотрите на&nbsp;план сверху.</p>
-      </div>
       <div class="viewer-card">
         <div class="viewer-tabs" role="group" aria-label="Ракурс 3D-модели">
           <button type="button" data-view="outside" aria-pressed="true"><svg class="icon"><use href="#i-cube"/></svg>Снаружи</button>
@@ -80,6 +96,7 @@
         </div>
         <div class="scene" id="model"><span class="model-loading">Загружаем модель…</span></div>
         <div class="scene-tools" role="group" aria-label="Управление ракурсом">
+          <button type="button" class="icon-btn auto-orbit" data-auto aria-label="Включить автоматическое вращение" aria-pressed="false" title="Автовращение"><svg class="icon"><use href="#i-orbit"/></svg></button>
           <button type="button" class="icon-btn" data-turn="-1" aria-label="Повернуть влево"><svg class="icon"><use href="#i-left"/></svg></button>
           <button type="button" class="icon-btn" data-turn="1" aria-label="Повернуть вправо"><svg class="icon"><use href="#i-right"/></svg></button>
           <button type="button" class="icon-btn" data-reset aria-label="Вернуть исходный ракурс"><svg class="icon"><use href="#i-reset"/></svg></button>
@@ -88,7 +105,7 @@
       </div>
     </section>
 
-    <section id="fit" class="fit-section" aria-labelledby="fit-title"><div class="wrap">
+    <section id="fit" data-barn class="fit-section" aria-labelledby="fit-title"><div class="wrap">
       <div class="section-header">
         <div><p class="eyebrow">Планировка</p><h2 id="fit-title">Поместится ли кровать?</h2></div>
         <p class="aside-text">Выберите ширину кровати: на плане сразу видно, сколько места останется для прохода.</p>
@@ -96,9 +113,9 @@
       <div id="fit-calculator"></div>
     </div></section>
 
-    <section class="wrap section gallery" id="gallery" aria-labelledby="gallery-title">
+    <section class="wrap section gallery" id="gallery" data-barn aria-labelledby="gallery-title">
       <div class="section-header">
-        <div><p class="eyebrow">Фото производителя</p><h2 id="gallery-title">Модуль в деталях</h2></div>
+        <div><p class="eyebrow">Фото производителя</p><h2 id="gallery-title">Барн в деталях</h2></div>
         <div class="gallery-nav" role="group" aria-label="Прокрутка фотографий"><button type="button" class="icon-btn" data-gallery-prev aria-label="Предыдущие фотографии"><svg class="icon"><use href="#i-left"/></svg></button><button type="button" class="icon-btn" data-gallery-next aria-label="Следующие фотографии"><svg class="icon"><use href="#i-right"/></svg></button></div>
       </div>
       <div class="photo-strip" tabindex="0" aria-label="Галерея модуля, шесть фотографий">
@@ -112,17 +129,17 @@
       <a class="source-link" href="https://t.me/karkaswoodstroy/105" target="_blank" rel="noopener noreferrer">Оригинальная публикация Karkaswood</a>
     </section>
 
-    <section class="technical" id="about" aria-labelledby="about-title"><div class="wrap technical-grid">
+    <section class="technical" id="about" data-barn aria-labelledby="about-title"><div class="wrap technical-grid">
       <div><p class="eyebrow">Конструкция</p><h2 id="about-title">Как устроен<br>модуль</h2><p class="aside-text">Материалы и размеры по описанию производителя.</p></div>
       <dl class="specs"><div><dt>Каркас</dt><dd>Доска камерной сушки, 100 × 50 мм</dd></div><div><dt>Утепление</dt><dd>Минеральная вата, 100 мм в стенах, полу и потолке</dd></div><div><dt>Фасад</dt><dd>Имитация бруса и профлист</dd></div><div><dt>Внутренняя отделка</dt><dd>ОСБ</dd></div><div><dt>Окно и дверь</dt><dd>Окно 500 × 600 мм, дверь 1800 × 800 мм</dd></div></dl>
     </div></section>
 
-    <section class="visit"><div class="wrap visit-grid">
-      <div><p class="eyebrow"><svg class="icon"><use href="#i-pin"/></svg>Косулино, Свердловская область</p><h2>Посмотреть вживую</h2><p>Напишите Дмитрию, чтобы уточнить стоимость, наличие и&nbsp;удобное время для&nbsp;поездки в&nbsp;цех.</p></div>
+    <section class="visit" id="visit"><div class="wrap visit-grid">
+      <div><p class="eyebrow"><svg class="icon"><use href="#i-pin"/></svg><span data-location>Косулино, Свердловская область</span></p><h2>Посмотреть вживую</h2><p>Напишите Дмитрию, чтобы уточнить стоимость, наличие и&nbsp;удобное время для&nbsp;поездки в&nbsp;цех.</p></div>
       <div class="visit-actions"><a class="btn btn-accent" href="https://t.me/Karkaswood_ekb" data-contact><svg class="icon"><use href="#i-message"/></svg>Договориться о просмотре</a><a class="visit-phone" href="tel:+79935031990">+7 993 503-19-90</a></div>
     </div></section>
   </main>
-  <footer class="footer"><div class="wrap footer-inner"><a class="brand" href="#top" aria-label="Karkaswood, в начало"><svg aria-hidden="true"><use href="#i-mark"/></svg><span>Karkaswood</span></a><p>Каркасные модули · Косулино</p><a href="https://t.me/karkaswoodstroy" target="_blank" rel="noopener noreferrer">Канал в Telegram</a></div></footer>
+  <footer class="footer"><div class="wrap footer-inner"><a class="brand" href="#top" aria-label="Karkaswood, в начало"><svg aria-hidden="true"><use href="#i-mark"/></svg><span>Karkaswood</span></a><p>Каркасные модули · <span data-location-short>Косулино</span></p><a class="footer-admin" href="admin/">Кабинет мастерской</a><a data-channel href="https://t.me/karkaswoodstroy" target="_blank" rel="noopener noreferrer">Канал в Telegram</a></div></footer>
   <dialog class="lightbox" aria-labelledby="lightbox-title"><div class="lightbox-shell">
     <h2 id="lightbox-title">Фотография модуля</h2><button type="button" class="icon-btn lb-close" aria-label="Закрыть фотографию"><svg class="icon"><use href="#i-close"/></svg></button>
     <img class="lb-image" alt=""><div class="lb-foot"><button class="icon-btn" type="button" data-step="-1" aria-label="Предыдущее фото"><svg class="icon"><use href="#i-left"/></svg></button><span class="lb-caption" aria-live="polite"></span><button class="icon-btn" type="button" data-step="1" aria-label="Следующее фото"><svg class="icon"><use href="#i-right"/></svg></button></div>

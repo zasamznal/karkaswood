@@ -1,0 +1,114 @@
+{
+  "settings": {
+    "brand": "Karkaswood",
+    "heading": "Каркасная мастерская",
+    "intro": "Бани, бытовки и хозблоки из Косулина. Посмотрите готовые работы или обсудите дом для своего участка.",
+    "location": "Косулино, Свердловская область",
+    "phone": "+79935031990",
+    "telegram": "https://t.me/Karkaswood_ekb",
+    "channel": "https://t.me/karkaswoodstroy",
+    "insideWidth": 220
+  },
+  "items": [
+    {
+      "id": "barn-2-4-5",
+      "category": "cabin",
+      "name": "Жилой барн-модуль",
+      "summary": "Модуль с остеклённой дверью и окном в торце. Стены, пол и потолок утеплены минеральной ватой толщиной 100 мм.",
+      "dimensions": "2,4 × 5 м",
+      "photo": "assets/photos/front.webp",
+      "source": "https://t.me/karkaswoodstroy/105",
+      "published": true
+    },
+    {
+      "id": "scandinavia-3-5",
+      "category": "bath",
+      "name": "Баня «Скандинавия»",
+      "summary": "Парная, отдельная помывочная и комната отдыха. В парной и мойке стены отделаны липой, пол настелен из лиственницы.",
+      "dimensions": "3 × 5 м",
+      "photo": "assets/catalog-photos/scandinavia-3-5.webp",
+      "source": "https://t.me/karkaswoodstroy/342",
+      "published": true
+    },
+    {
+      "id": "barn-compact",
+      "category": "utility",
+      "name": "Хозблок BARN",
+      "summary": "Распашные двери шириной 1,1 м открываются с торца. Деревянный фасад сочетается с профлистом цвета тёмного графита.",
+      "dimensions": "2,4 × 3 м",
+      "photo": "assets/catalog-photos/barn-compact.webp",
+      "source": "https://t.me/karkaswoodstroy/89",
+      "published": true
+    },
+    {
+      "id": "workshop-3-4",
+      "category": "cabin",
+      "name": "Бытовка-мастерская",
+      "summary": "Утеплённая мастерская с окном и деревянным полом. Стены и потолок обшиты вагонкой.",
+      "dimensions": "3 × 4 м",
+      "photo": "assets/catalog-photos/workshop-3-4.webp",
+      "source": "https://t.me/karkaswoodstroy/359",
+      "published": true
+    },
+    {
+      "id": "loft-woodstore",
+      "category": "utility",
+      "name": "LOFT с дровником",
+      "summary": "Под одной крышей разместились закрытое отделение для инвентаря и дровник со стенками из деревянных реек.",
+      "dimensions": "2,2 × 7 м",
+      "photo": "assets/catalog-photos/loft-woodstore.webp",
+      "source": "https://t.me/karkaswoodstroy/335",
+      "published": true
+    },
+    {
+      "id": "bath-panoramic",
+      "category": "bath",
+      "name": "Баня с панорамными окнами",
+      "summary": "Три панорамных окна, парная с отделкой из липы, душевая и комната отдыха. В проекте предусмотрены водонагреватель и обливное устройство.",
+      "dimensions": "2,5 × 8 м",
+      "photo": "assets/catalog-photos/bath-panoramic.webp",
+      "source": "https://t.me/karkaswoodstroy/382",
+      "published": true
+    },
+    {
+      "id": "provence-garden",
+      "category": "utility",
+      "name": "Хозблок «Прованс»",
+      "summary": "Два окна с цветочными ящиками и широкая дверь. Внутри — дощатый пол, обшивка ОСБ и освещение.",
+      "dimensions": "2,4 × 4,8 м",
+      "photo": "assets/catalog-photos/provence-garden.webp",
+      "source": "https://t.me/karkaswoodstroy/282",
+      "published": true
+    },
+    {
+      "id": "bath-terrace",
+      "category": "bath",
+      "name": "Баня с террасой",
+      "summary": "Баню и хозблок со стеллажами объединяет терраса 5 × 4 м. Настил сделан из лиственницы.",
+      "dimensions": "6,4 × 7 м",
+      "photo": "assets/catalog-photos/bath-terrace.webp",
+      "source": "https://t.me/karkaswoodstroy/391",
+      "published": true
+    },
+    {
+      "id": "loft-garden",
+      "category": "utility",
+      "name": "Дачный хозблок LOFT",
+      "summary": "Горизонтальное окно длиной 1,8 м пропускает свет. Фасад обшит деревом и матовым профлистом.",
+      "dimensions": "2 × 4 м",
+      "photo": "assets/catalog-photos/loft-garden.webp",
+      "source": "https://t.me/karkaswoodstroy/333",
+      "published": true
+    },
+    {
+      "id": "barn-maxi",
+      "category": "utility",
+      "name": "Хозблок BARN MAXI",
+      "summary": "Высота в коньке — 3,5 м. Внутри деревянная вагонка и шпунтованный пол, на фасаде — два окна.",
+      "dimensions": "2,4 × 5 м",
+      "photo": "assets/catalog-photos/barn-maxi.webp",
+      "source": "https://t.me/karkaswoodstroy/323",
+      "published": true
+    }
+  ]
+}

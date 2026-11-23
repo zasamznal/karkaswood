@@ -185,3 +185,22 @@ body:has(.lightbox[open]) {overflow:hidden}
 }
 @media(max-width:355px){.wrap{width:calc(100% - 28px)}.mast-inner{gap:5px}.hero-actions{gap:12px}.hero-actions .icon{width:15px;height:15px}.viewer-tabs{left:8px}.viewer-tabs button{padding:8px 7px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation-duration:.01ms!important}}
+
+/* Workshop home and the featured-module tour. */
+[hidden] { display:none!important }
+.hero-copy { width:min(100%,600px);max-width:51% }
+.hero h1 {max-width:9.4ch;overflow-wrap:anywhere;font-size:clamp(5rem,7.05vw,8rem);line-height:.9}
+.hero-intro {max-width:430px}
+.workshop-catalog {padding-bottom:clamp(50px,5.8vw,100px)}
+.feature-viewer {border-top:1px solid var(--line)}
+.barn-metrics {border:1px solid var(--line);border-bottom:0;border-radius:6px 6px 0 0}
+.barn-metrics .metrics {margin:0;padding:15px 23px}
+.barn-metrics .metrics dd {font-size:1.9rem}
+.barn-metrics + .viewer-card {border-radius:0 0 6px 6px}
+.scene-tools .auto-orbit[aria-pressed="true"] {background:var(--forest);color:#fff}
+.footer-admin {margin-left:auto;color:var(--muted);font-size:.81rem;text-decoration:underline;text-underline-offset:4px}
+.catalog-loading {min-height:80px;color:var(--muted);display:flex;align-items:center}
+#preview-status {padding:11px 5%;background:#eee0bf;color:#41371f;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font:500 .86rem/1.55 var(--sans)}
+#preview-status a {font-weight:650;text-underline-offset:3px}
+@media(max-width:720px){.hero h1{font-size:clamp(4.35rem,10.1vw,5rem)}.hero-copy{max-width:68%}.barn-metrics .metrics{padding:5px 12px}.barn-metrics .metrics>div{min-height:51px;padding-block:5px}.footer-admin{margin-left:0}}
+@media(max-width:540px){.hero-copy{max-width:100%}.hero h1{font-size:clamp(3.55rem,13.1vw,4.5rem)}.hero-intro{max-width:380px}.footer-inner{row-gap:16px}.footer-inner .brand{flex-basis:100%}.footer-inner>a:last-child{margin-left:auto}.scene-tools{bottom:48px}.hero-actions{gap:clamp(11px,2vw,19px)}}

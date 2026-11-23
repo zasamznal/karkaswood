@@ -1,0 +1,136 @@
+.kwitems-root {
+  --kwitems-text: #302c26;
+  --kwitems-muted: #685e52;
+  --kwitems-line: #d9d2c6;
+  --kwitems-surface: #fffdfa;
+  --kwitems-paper: #f6f2e9;
+  --kwitems-accent: #90432a;
+  color: var(--kwitems-text);
+  container: kwitems / inline-size;
+  font-family: inherit;
+}
+.kwitems-root *, .kwitems-root *::before, .kwitems-root *::after { box-sizing: border-box; }
+.kwitems-root [hidden] { display: none !important; }
+.kwitems-root h3, .kwitems-root h4, .kwitems-root p, .kwitems-root ul, .kwitems-root fieldset { margin: 0; }
+.kwitems-root button, .kwitems-root input, .kwitems-root textarea, .kwitems-root select { font: inherit; }
+.kwitems-root button, .kwitems-root input::file-selector-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 1px solid #baafa0;
+  border-radius: 6px;
+  background: var(--kwitems-surface);
+  color: var(--kwitems-text);
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.kwitems-root button:hover:not(:disabled), .kwitems-root input::file-selector-button:hover { border-color: var(--kwitems-accent); }
+.kwitems-root button:disabled { opacity: .45; cursor: default; }
+.kwitems-root :focus-visible { outline: 2px solid var(--kwitems-accent); outline-offset: 3px; }
+.kwitems-root .kwitems-primary, .kwitems-root .kwitems-danger {
+  border-color: var(--kwitems-accent);
+  background: var(--kwitems-accent);
+  color: white;
+}
+.kwitems-toolbar {
+  display: grid;
+  grid-template-columns: minmax(170px, 1fr) minmax(135px, .55fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+.kwitems-field { display: grid; align-content: start; gap: 6px; min-width: 0; font-size: 14px; font-weight: 600; }
+.kwitems-field :is(input, textarea, select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid #bfb6a8;
+  border-radius: 6px;
+  background: var(--kwitems-surface);
+  color: var(--kwitems-text);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.kwitems-field textarea { resize: vertical; }
+.kwitems-field input::placeholder, .kwitems-field textarea::placeholder { color: #797167; opacity: 1; }
+.kwitems-toolbar .kwitems-add { min-height: 44px; }
+.kwitems-count, .kwitems-status, .kwitems-photo-status { color: var(--kwitems-muted); font-size: 13px; line-height: 1.5; }
+.kwitems-root .kwitems-count { margin: 16px 0 8px; }
+.kwitems-root .kwitems-status:not(:empty) { margin-top: 12px; }
+.kwitems-list { padding: 0; list-style: none; }
+.kwitems-row {
+  display: grid;
+  grid-template-columns: 66px minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--kwitems-line);
+}
+.kwitems-thumbnail, .kwitems-preview {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--kwitems-line);
+  border-radius: 6px;
+  background: #ebe5d9;
+  color: var(--kwitems-muted);
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+}
+.kwitems-thumbnail { width: 66px; height: 60px; }
+.kwitems-thumbnail img, .kwitems-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.kwitems-row-body { min-width: 0; }
+.kwitems-row-body h4 { color: var(--kwitems-text); font: inherit; font-size: 16px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.kwitems-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; margin-top: 5px; color: var(--kwitems-muted); font-size: 12px; }
+.kwitems-meta span { overflow-wrap: anywhere; }
+.kwitems-badge { padding: 1px 6px; border-radius: 4px; background: #e9e5dd; color: #575046; font-size: 11px; }
+.kwitems-visible { background: #e1ebdd; color: #37533a; }
+.kwitems-price { font-variant-numeric: tabular-nums; }
+.kwitems-row-actions, .kwitems-form-actions, .kwitems-photo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kwitems-row-actions { justify-content: flex-end; }
+.kwitems-root .kwitems-arrow { min-width: 36px; padding: 6px; font-size: 17px; }
+.kwitems-root .kwitems-delete, .kwitems-root .kwitems-remove-photo { border-color: transparent; background: transparent; color: #8b382d; }
+.kwitems-confirm > span { color: #762f27; font-size: 14px; }
+.kwitems-empty { border: 1px dashed var(--kwitems-line); padding: 22px; border-radius: 6px; color: var(--kwitems-muted); text-align: center; }
+.kwitems-form {
+  display: grid;
+  gap: 18px;
+  padding: clamp(14px, 3cqw, 32px);
+  border: 1px solid var(--kwitems-line);
+  border-radius: 8px;
+  background: var(--kwitems-surface);
+}
+.kwitems-form-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.kwitems-form-header h3 { font-size: 24px; font-weight: 600; line-height: 1.2; }
+.kwitems-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.kwitems-wide { grid-column: 1 / -1; }
+.kwitems-root .kwitems-photo { min-width: 0; padding: 12px; border: 1px solid var(--kwitems-line); border-radius: 7px; }
+.kwitems-photo legend { padding: 0 5px; font-size: 15px; font-weight: 650; }
+.kwitems-photo-body { display: grid; grid-template-columns: minmax(100px, .45fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.kwitems-preview { width: 100%; aspect-ratio: 4 / 3; }
+.kwitems-photo-fields { display: grid; gap: 10px; }
+.kwitems-field input[type="file"] { padding: 3px; font-size: 13px; }
+.kwitems-root input::file-selector-button { margin-right: 6px; font-size: 13px; }
+.kwitems-publish { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+.kwitems-publish input { width: 18px; height: 18px; margin: 0; accent-color: var(--kwitems-accent); }
+.kwitems-form-actions { padding-top: 12px; border-top: 1px solid var(--kwitems-line); }
+.kwitems-form-actions button { min-height: 44px; }
+@container kwitems (max-width: 790px) {
+  .kwitems-row { grid-template-columns: 62px minmax(0, 1fr); }
+  .kwitems-row-actions { grid-column: 2; justify-content: flex-start; }
+}
+@container kwitems (max-width: 540px) {
+  .kwitems-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kwitems-search { grid-column: 1 / -1; }
+  .kwitems-row-actions { grid-column: 1 / -1; }
+  .kwitems-fields, .kwitems-photo-body { grid-template-columns: minmax(0, 1fr); }
+  .kwitems-preview { max-width: 180px; }
+  .kwitems-form-header h3 { font-size: 20px; }
+  .kwitems-row-actions button { min-height: 44px; }
+}

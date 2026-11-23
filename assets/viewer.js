@@ -117,9 +117,10 @@ function createModel(scene) {
   };
   const root = new THREE.Group();
   scene.add(root);
-  const group = () => { const g = new THREE.Group(); root.add(g); return g; };
+  const group = (parent = root) => { const g = new THREE.Group(); parent.add(g); return g; };
   const base = group(), roof = group(), bed = group(), plan = group();
   const sides = [group(), group(), group(), group()];
+  const planSides = [group(plan), group(plan)];
   const batches = new Map();
   const v = new THREE.Vector3(), n = new THREE.Vector3();
   const euler = new THREE.Euler(), quat = new THREE.Quaternion(), tr = new THREE.Matrix4(), normalTr = new THREE.Matrix3();
@@ -263,8 +264,8 @@ function createModel(scene) {
   for (const sign of [-1, 1]) box(bed, m.linen, bx + 0.75, FLOOR + 0.47, bz + sign * 0.326, 0.36, 0.13, 0.54, 0.98, [0, sign * 0.033, -0.035]);
   // The doorway is on the inset timber gable, opposite the small window.
   const planWall = (x, z, w, d) => box(plan, m.plan, x, FLOOR + 0.075, z, w, 0.15, d);
-  planWall(0, -1.15, 5, WALL);
-  planWall(0, 1.15, 5, WALL);
+  box(planSides[0], m.plan, 0, FLOOR + 0.075, 1.15, 5, 0.15, WALL);
+  box(planSides[1], m.plan, 0, FLOOR + 0.075, -1.15, 5, 0.15, WALL);
   planWall(2.45, 0, WALL, WIDTH);
   planWall(-2.30, -0.79, WALL, 0.78);
   planWall(-2.30, 0.79, WALL, 0.78);
@@ -285,7 +286,29 @@ function createModel(scene) {
     mesh.receiveShadow = true;
     g.add(mesh);
   }
-  return { root, base, roof, bed, sides, plan, grain, osb, glazing, materials: Object.values(m) };
+  // Change the inward depth of the longitudinal walls while preserving the external footprint.
+  const widthMeshes = [];
+  for (let i = 0; i < 2; i++) for (const g of [sides[i], planSides[i]]) {
+    for (const mesh of g.children) widthMeshes.push({
+      mesh, original: mesh.geometry.getAttribute('position').array.slice(),
+      direction: i === 0 ? 1 : -1, innerDepth: g === planSides[i] ? WALL : WALL + 0.0065,
+    });
+  }
+  function setRoomWidth(cm) {
+    const thickness = (WIDTH - cm / 100) / 2;
+    for (const { mesh, original, direction, innerDepth } of widthMeshes) {
+      const attr = mesh.geometry.getAttribute('position');
+      for (let i = 2; i < attr.array.length; i += 3) {
+        const depth = WIDTH / 2 - direction * original[i];
+        attr.array[i] = original[i] - direction * (thickness - innerDepth) * clamp(depth / innerDepth, 0, 1);
+      }
+      attr.needsUpdate = true;
+      mesh.geometry.computeBoundingSphere(); mesh.geometry.computeBoundingBox();
+    }
+  }
+  setRoomWidth(220);
+  for (const mesh of roof.children) mesh.material = mesh.material.clone();
+  return { root, base, roof, bed, sides, plan, grain, osb, glazing, setRoomWidth, materials: [...Object.values(m), ...roof.children.map(mesh => mesh.material)] };
 }
 
 // A projected canvas rendering retains the same model and controls on devices without WebGL2.
@@ -351,32 +374,43 @@ function softwareRenderer(canvas, model) {
       zBuffer.fill(Infinity); pixels.data.fill(0);
       camera.getWorldDirection(eye).negate();
       cameraMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-      model.root.traverseVisible(mesh => {
-        if (!mesh.isMesh) return;
-        projected.multiplyMatrices(cameraMatrix, mesh.matrixWorld);
-        const g = mesh.geometry, pos = g.attributes.position, normals = g.attributes.normal, index = g.index.array, uv = g.attributes.uv;
-        const material = mesh.material, texture = textures.get(material.map);
-        for (let i = 0; i < index.length; i += 6) {
-          const a = index[i];
-          n.fromBufferAttribute(normals, a).transformDirection(mesh.matrixWorld);
-          if (n.dot(eye) < 0.001) continue;
-          const ids = [a, index[i + 1], index[i + 4], index[i + 2]];
-          const v = ids.map(id => screen(pos, id)), uvs = ids.map(id => [uv.getX(id), uv.getY(id)]);
-          const shade = (0.68 + Math.max(0, n.dot(sun)) * 0.86) * g.attributes.color.getX(a);
-          const color = tint.copy(material.color).multiplyScalar(shade).getHex();
-          triangle(v[0], v[1], v[3], ...uvs[0], ...uvs[1], ...uvs[3], color, texture);
-          triangle(v[1], v[2], v[3], ...uvs[1], ...uvs[2], ...uvs[3], color, texture);
-        }
-      });
+      const roofOpacity = model.roof.userData.opacity ?? 1;
+      const fadingRoof = model.roof.visible && roofOpacity < 0.995;
+      function rasterize(root, omitRoof) {
+        root.traverseVisible(mesh => {
+          if (!mesh.isMesh || (omitRoof && mesh.parent === model.roof)) return;
+          projected.multiplyMatrices(cameraMatrix, mesh.matrixWorld);
+          const g = mesh.geometry, pos = g.attributes.position, normals = g.attributes.normal, index = g.index.array, uv = g.attributes.uv;
+          const material = mesh.material, texture = textures.get(material.map);
+          for (let i = 0; i < index.length; i += 6) {
+            const a = index[i];
+            n.fromBufferAttribute(normals, a).transformDirection(mesh.matrixWorld);
+            if (n.dot(eye) < 0.001) continue;
+            const ids = [a, index[i + 1], index[i + 4], index[i + 2]];
+            const v = ids.map(id => screen(pos, id)), uvs = ids.map(id => [uv.getX(id), uv.getY(id)]);
+            const shade = (0.68 + Math.max(0, n.dot(sun)) * 0.86) * g.attributes.color.getX(a);
+            const color = tint.copy(material.color).multiplyScalar(shade).getHex();
+            triangle(v[0], v[1], v[3], ...uvs[0], ...uvs[1], ...uvs[3], color, texture);
+            triangle(v[1], v[2], v[3], ...uvs[1], ...uvs[2], ...uvs[3], color, texture);
+          }
+        });
+      }
+      rasterize(model.root, fadingRoof);
       layerCtx.putImageData(pixels, 0, 0); ctx.drawImage(layer, 0, 0);
+      if (fadingRoof) {
+        pixels.data.fill(0);
+        rasterize(model.roof, false);
+        layerCtx.putImageData(pixels, 0, 0);
+        ctx.globalAlpha = roofOpacity; ctx.drawImage(layer, 0, 0); ctx.globalAlpha = 1;
+      }
     },
   };
 }
 
 const presets = {
-  outside: { yaw: -2.34, pitch: 0.42, aim: 1.17, vertical: 3.94, horizontal: 6.55 },
-  inside: { yaw: -2.49, pitch: 0.80, aim: 0.90, vertical: 4.17, horizontal: 6.55 },
-  plan: { yaw: 0, pitch: HALF_PI - 0.001, aim: 0.15, vertical: 3.35, horizontal: 6.15 },
+  outside: { yaw: -2.34, pitch: 0.42, aim: 1.17 },
+  inside: { yaw: -2.49, pitch: 0.80, aim: 0.90 },
+  plan: { yaw: 0, pitch: HALF_PI - 0.001, aim: 0.15 },
 };
 
 export function mountViewer(container) {
@@ -419,32 +453,68 @@ export function mountViewer(container) {
     for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) corners.push(new THREE.Vector3(x, y, z));
     modelBounds.set(g, corners);
   }
-  let mode = 'outside', showBed = true, bedWidth = 140, zoom = 1;
+  let mode = 'outside', showBed = true, bedWidth = 140, insideWidth = 220, zoom = 1;
   let yaw = presets.outside.yaw, pitch = presets.outside.pitch, aim = presets.outside.aim;
   let turn = yaw, tilt = pitch, targetAim = aim;
   let w = 1, h = 1, frame = 0, disposed = false;
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function draw() {
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let lastTime = 0, opening = 0, planMix = 0, auto = false, inViewport = true;
+  const smooth = THREE.MathUtils.smoothstep;
+  const step = (value, target, distance) => value + clamp(target - value, -distance, distance);
+  function setAutoRotate(value, reason = 'control') {
+    const active = Boolean(value) && mode !== 'plan' && !motion.matches && !document.hidden && inViewport;
+    if (active !== auto || (value && !active)) {
+      auto = active;
+      container.dispatchEvent(new CustomEvent('viewer:autorotate', { bubbles: true, detail: { active, reason } }));
+    }
+    if (auto) queue();
+    return active;
+  }
+  function draw(time) {
     frame = 0;
-    if (disposed) return;
-    const ease = reducedMotion ? 1 : 0.23;
+    if (disposed || document.hidden || !inViewport) return;
+    const dt = lastTime ? clamp((time - lastTime) / 1000, 0.001, 0.09) : 1 / 60;
+    lastTime = time;
+    const ease = motion.matches ? 1 : 1 - Math.exp(-dt * 14);
+    const openTarget = mode === 'outside' ? 0 : 1, planTarget = mode === 'plan' ? 1 : 0;
+    opening = step(opening, openTarget, motion.matches ? 1 : dt / 0.72);
+    planMix = step(planMix, planTarget, motion.matches ? 1 : dt / 0.54);
+    if (auto) turn += dt * 0.17;
     yaw += (turn - yaw) * ease; pitch += (tilt - pitch) * ease; aim += (targetAim - aim) * ease;
     const dx = Math.sin(yaw), dz = Math.cos(yaw), radius = Math.cos(pitch) * 13;
     camera.position.set(dx * radius, aim + Math.sin(pitch) * 13, dz * radius);
     camera.lookAt(0, aim, 0); camera.updateMatrixWorld();
-    model.roof.visible = mode === 'outside'; model.plan.visible = mode === 'plan';
-    model.bed.visible = showBed && mode !== 'outside';
+    const lift = smooth(opening, 0, 0.64);
+    const opacity = 1 - smooth(opening, 0.12, 0.68);
+    model.roof.position.y = lift * 0.25;
+    model.roof.visible = opacity > 0.002;
+    if (opacity !== model.roof.userData.opacity) {
+      model.roof.userData.opacity = opacity;
+      for (const mesh of model.roof.children) {
+        const transparent = opacity < 0.995;
+        if (mesh.material.transparent !== transparent) { mesh.material.transparent = transparent; mesh.material.needsUpdate = true; }
+        mesh.material.opacity = opacity; mesh.material.depthWrite = !transparent; mesh.castShadow = opacity > 0.6;
+      }
+    }
+    const cut = smooth(opening, 0.18, 1), planAmount = smooth(planMix, 0, 1);
+    model.plan.visible = planAmount > 0.002;
+    model.plan.scale.y = Math.max(0.001, planAmount); model.plan.position.y = FLOOR * (1 - model.plan.scale.y);
+    model.bed.visible = showBed && opening > 0.12;
     model.bed.scale.z = bedWidth / 140;
-    model.bed.position.z = (WIDTH / 2 - WALL) - bedWidth / 200;
-    // During a cutaway turn, the walls nearest the camera step out of view.
+    model.bed.position.z = (insideWidth - bedWidth) / 200;
     const facing = [dz, -dz, -dx, dx];
-    model.sides.forEach((g, i) => { g.visible = mode === 'outside' || (mode === 'inside' && facing[i] < 0.05); });
+    model.sides.forEach((g, i) => {
+      const near = smooth(facing[i], -0.15, 0.13);
+      const amount = 1 - cut * (near + (1 - near) * planAmount);
+      g.visible = amount > 0.002;
+      g.scale.y = Math.max(amount, 0.001); g.position.y = FLOOR * (1 - g.scale.y);
+    });
     let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity;
     const sp = Math.sin(pitch), cp = Math.cos(pitch);
     for (const [g, points] of modelBounds) if (g.visible) {
       for (const p of points) {
         const u = p.x * dz - p.z * dx;
-        const v = (p.y - aim) * cp - (p.x * dx + p.z * dz) * sp;
+        const v = (p.y * g.scale.y + g.position.y - aim) * cp - (p.x * dx + p.z * dz) * sp;
         minU = Math.min(minU, u); maxU = Math.max(maxU, u);
         minV = Math.min(minV, v); maxV = Math.max(maxV, v);
       }
@@ -457,9 +527,9 @@ export function mountViewer(container) {
     camera.updateProjectionMatrix();
     scene.updateMatrixWorld();
     if (renderer) renderer.render(scene, camera); else fallback.render(camera);
-    if (Math.max(Math.abs(turn - yaw), Math.abs(tilt - pitch), Math.abs(aim - targetAim)) > 0.0006) queue();
+    if (auto || opening !== openTarget || planMix !== planTarget || Math.max(Math.abs(turn - yaw), Math.abs(tilt - pitch), Math.abs(aim - targetAim)) > 0.0006) queue();
   }
-  function queue() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
+  function queue() { if (!disposed && !frame && !document.hidden && inViewport) frame = requestAnimationFrame(draw); }
   function resize() {
     const rect = container.getBoundingClientRect();
     w = Math.max(1, Math.round(rect.width)); h = Math.max(1, Math.round(rect.height));
@@ -469,6 +539,7 @@ export function mountViewer(container) {
     queue();
   }
   function reset() {
+    setAutoRotate(false, 'reset');
     const p = presets[mode];
     // Pick the nearest equivalent angle so a reset never spins a full revolution.
     turn = yaw + Math.atan2(Math.sin(p.yaw - yaw), Math.cos(p.yaw - yaw));
@@ -476,14 +547,15 @@ export function mountViewer(container) {
   }
   function setView(view) {
     if (!Object.prototype.hasOwnProperty.call(presets, view)) return;
-    mode = view; reset();
+    setAutoRotate(false, 'view'); mode = view; reset();
   }
-  function rotate(delta) { const amount = Number(delta); if (Number.isFinite(amount)) { turn += amount; queue(); } }
+  function rotate(delta) { const amount = Number(delta); if (Number.isFinite(amount)) { setAutoRotate(false, 'interaction'); turn += amount; queue(); } }
   const pointers = new Map();
   let pinchDistance = 0;
   const distance = () => { const [a, b] = pointers.values(); return Math.hypot(a.x - b.x, a.y - b.y); };
   function pointerDown(e) {
     if (e.button !== 0) return;
+    setAutoRotate(false, 'interaction');
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 2) pinchDistance = distance();
     canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing';
@@ -502,10 +574,10 @@ export function mountViewer(container) {
     queue();
   }
   function pointerEnd(e) { pointers.delete(e.pointerId); if (!pointers.size) canvas.style.cursor = 'grab'; }
-  function wheel(e) { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); zoom = clamp(zoom * Math.exp(-e.deltaY * 0.006), 0.75, 1.65); queue(); }
+  function wheel(e) { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); setAutoRotate(false, 'interaction'); zoom = clamp(zoom * Math.exp(-e.deltaY * 0.006), 0.75, 1.65); queue(); }
   function keydown(e) {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', '+', '-', '='].includes(e.key)) return;
-    e.preventDefault();
+    e.preventDefault(); setAutoRotate(false, 'interaction');
     if (e.key === 'Home') return reset();
     if (e.key === 'ArrowLeft') return rotate(-0.21);
     if (e.key === 'ArrowRight') return rotate(0.21);
@@ -514,18 +586,48 @@ export function mountViewer(container) {
     else if (mode !== 'plan') tilt = clamp(tilt + (e.key === 'ArrowUp' ? 0.10 : -0.10), mode === 'inside' ? 0.4 : 0.09, 1.34);
     queue();
   }
-  canvas.addEventListener('pointerdown', pointerDown); canvas.addEventListener('pointermove', pointerMove);
-  canvas.addEventListener('pointerup', pointerEnd); canvas.addEventListener('lostpointercapture', pointerEnd);
-  canvas.addEventListener('pointercancel', pointerEnd); canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('keydown', keydown);
-  canvas.addEventListener('webglcontextrestored', resize);
+  function contextLost(event) {
+    event.preventDefault(); setAutoRotate(false, 'context-lost'); pointers.clear();
+    const focused = document.activeElement === canvas;
+    const replacement = canvas.cloneNode(false);
+    canvas.replaceWith(replacement); canvas = replacement; canvas.style.cursor = 'grab';
+    renderer.dispose(); renderer = undefined; fallback = softwareRenderer(canvas, model);
+    bindCanvas(); resize();
+    if (focused) canvas.focus({ preventScroll: true });
+  }
+  function bindCanvas() {
+    canvas.addEventListener('pointerdown', pointerDown); canvas.addEventListener('pointermove', pointerMove);
+    canvas.addEventListener('pointerup', pointerEnd); canvas.addEventListener('lostpointercapture', pointerEnd);
+    canvas.addEventListener('pointercancel', pointerEnd); canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('keydown', keydown);
+    if (renderer) canvas.addEventListener('webglcontextlost', contextLost, { once: true });
+  }
+  function visibility() {
+    lastTime = 0;
+    if (document.hidden || !inViewport) {
+      setAutoRotate(false, document.hidden ? 'hidden' : 'offscreen'); cancelAnimationFrame(frame); frame = 0;
+    } else queue();
+  }
+  function motionChange() { if (motion.matches) setAutoRotate(false, 'reduced-motion'); queue(); }
+  bindCanvas(); motion.addEventListener('change', motionChange);
+  document.addEventListener('visibilitychange', visibility);
+  const visibilityObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver(([entry]) => {
+    inViewport = entry.isIntersecting; visibility();
+  }) : null;
+  visibilityObserver?.observe(container);
   const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null;
   observer?.observe(container); window.addEventListener('resize', resize); resize();
   return {
-    setView, rotate, reset, resize,
-    setBed(visible) { showBed = Boolean(visible); queue(); },
-    setBedWidth(cm) { const value = Number(cm); if ([90, 140, 160].includes(value)) { bedWidth = value; queue(); } },
+    setView, rotate, reset, resize, setAutoRotate,
+    setBed(visible) { if (Boolean(visible) !== showBed) { setAutoRotate(false, 'interaction'); showBed = Boolean(visible); queue(); } },
+    setBedWidth(cm) { const value = Number(cm); if ([90, 140, 160].includes(value) && bedWidth !== value) { setAutoRotate(false, 'interaction'); bedWidth = value; queue(); } },
+    setInsideWidth(cm) {
+      const value = Number(cm);
+      if (!Number.isFinite(value) || value < 185 || value > 240 || insideWidth === value) return;
+      setAutoRotate(false, 'interaction'); insideWidth = value; model.setRoomWidth(value); queue();
+    },
     dispose() {
-      disposed = true; cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize', resize);
+      disposed = true; cancelAnimationFrame(frame); observer?.disconnect(); visibilityObserver?.disconnect(); window.removeEventListener('resize', resize);
+      motion.removeEventListener('change', motionChange); document.removeEventListener('visibilitychange', visibility);
       scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
       model.materials.forEach(m => m.dispose()); model.grain.dispose(); model.osb.dispose(); model.glazing.dispose();
       sun.shadow.dispose(); ground.material.dispose(); renderer?.dispose(); canvas.remove();

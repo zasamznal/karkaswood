@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#20362a">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Панель мастерской · Karkaswood</title>
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../assets/fonts/fonts.css">
+  <link rel="stylesheet" href="./admin.css">
+  <link rel="stylesheet" href="./settings.css">
+</head>
+<body>
+  <svg class="ui-symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="a-mark" viewBox="0 0 42 34"><path d="M2 31V13L17 3l15 10v18H2Z M11 30V16L25 6l15 10v15H11 M18 30v-9l6-4 6 4v9" fill="none" stroke="currentColor" stroke-width="2.5"/></symbol>
+    <symbol id="a-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/></symbol>
+    <symbol id="a-catalog" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4-9 4-9-4Z M3 12l9 4 9-4 M3 17l9 4 9-4"/></symbol>
+    <symbol id="a-gear" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--control-fill,currentColor)"/><circle cx="15" cy="12" r="2" fill="var(--control-fill,currentColor)"/><circle cx="9" cy="18" r="2" fill="var(--control-fill,currentColor)"/></symbol>
+    <symbol id="a-eye" viewBox="0 0 24 24"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="a-cloud" viewBox="0 0 24 24"><path d="M7 18H6a4.5 4.5 0 0 1-.4-9A6.5 6.5 0 0 1 18 8a5 5 0 0 1 0 10h-1 M12 19V9m-4 4 4-4 4 4"/></symbol>
+    <symbol id="a-link" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6L10 14 M10 5H5v14h14v-5"/></symbol>
+    <symbol id="a-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2"/></symbol>
+    <symbol id="a-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="a-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+    <symbol id="a-edit" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l5-1L21 7l-4-4L5 15l-1 5Z"/></symbol>
+    <symbol id="a-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+    <symbol id="a-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 10v11h14V10M10 21v-6h4v6"/></symbol>
+    <symbol id="a-box" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4v10l-9 4-9-4V7Zm0 0 9 4 9-4m-9 4v10"/></symbol>
+    <symbol id="a-archive" viewBox="0 0 24 24"><path d="M4 9h16v11H4zM3 4h18v5H3zM10 13h4"/></symbol>
+    <symbol id="a-branch" viewBox="0 0 24 24"><circle cx="7" cy="5" r="2"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><path d="M7 7v10m0-3c3 0 8-1 10-4"/></symbol>
+  </defs></svg>
+  <a href="#main" class="a-skip">Перейти к содержимому</a>
+  <div class="a-frame">
+    <aside class="a-sidebar" aria-label="Панель мастерской">
+      <a class="a-brand" href="#overview"><svg aria-hidden="true"><use href="#a-mark"/></svg><span>Karkaswood</span></a>
+      <p class="a-sidebar-kicker">Управление сайтом</p>
+      <button id="menu-toggle" class="a-nav-toggle" aria-controls="side-content" aria-expanded="false" type="button"><svg class="a-icon" aria-hidden="true"><use href="#a-menu"/></svg>Меню</button>
+      <div class="a-side-content" id="side-content">
+        <nav class="a-nav" aria-label="Разделы панели">
+          <a href="#overview" data-nav="overview" aria-current="page"><svg class="a-icon" aria-hidden="true"><use href="#a-grid"/></svg>Обзор</a>
+          <a href="#catalog" data-nav="catalog"><svg class="a-icon" aria-hidden="true"><use href="#a-catalog"/></svg>Каталог</a>
+          <a href="#settings" data-nav="settings"><svg class="a-icon" aria-hidden="true"><use href="#a-gear"/></svg>Настройки сайта</a>
+        </nav>
+        <div class="a-side-lower">
+          <a href="../" target="_blank" rel="noopener" class="a-side-link"><svg class="a-icon" aria-hidden="true"><use href="#a-link"/></svg>Сайт для покупателей</a>
+          <button id="account" type="button" class="a-account"><svg class="a-icon" aria-hidden="true"><use href="#a-lock"/></svg><span>Вход владельца</span></button>
+        </div>
+      </div>
+    </aside>
+    <main id="main" class="a-main" tabindex="-1">
+      <header class="a-topbar">
+        <p id="workspace-label">Панель мастерской</p>
+        <div class="a-top-actions">
+          <a class="a-btn a-secondary" id="preview" href="../?preview=draft" target="_blank" rel="noopener"><svg class="a-icon" aria-hidden="true"><use href="#a-eye"/></svg>Предпросмотр</a>
+          <button type="button" id="publish" class="a-btn a-primary" disabled><svg class="a-icon" aria-hidden="true"><use href="#a-cloud"/></svg>Опубликовать</button>
+        </div>
+      </header>
+      <div class="a-content">
+        <div class="a-title-row"><div><h1 id="section-title" tabindex="-1">Обзор мастерской</h1><p id="section-subtitle">Состояние каталога и оформление сайта.</p></div></div>
+        <div id="notice" class="a-notice" role="status" aria-live="polite" hidden><p id="notice-text"></p><button class="a-inline" id="notice-action" type="button" hidden></button></div>
+        <div class="a-work-status" id="draft-bar" hidden><div><span id="mode">Деморежим</span><span id="save-state"></span></div><button class="a-inline" id="discard" type="button" hidden>Отменить изменения</button></div>
+        <div id="panel"><p class="a-loading" role="status">Загружаем каталог мастерской…</p></div>
+      </div>
+    </main>
+  </div>
+  <dialog id="access-dialog" class="a-dialog" aria-labelledby="access-title"><div class="a-dialog-body">
+    <button class="a-dialog-x" data-close type="button" aria-label="Закрыть окно"><svg class="a-icon" aria-hidden="true"><use href="#a-x"/></svg></button>
+    <span class="a-icon-tile"><svg class="a-icon" aria-hidden="true"><use href="#a-lock"/></svg></span>
+    <h2 id="access-title">Вход владельца</h2>
+    <div id="signed-out">
+      <p>Войдите, чтобы изменения увидели покупатели. В деморежиме вы можете редактировать и просматривать черновик на своём устройстве.</p>
+      <form id="login-form">
+        <label for="owner-password">Пароль мастерской</label>
+        <input id="owner-password" type="password" autocomplete="current-password" required name="password">
+        <button class="a-btn a-primary" id="connect" type="submit">Войти</button>
+      </form>
+    </div>
+    <div id="signed-in" hidden><p id="account-summary"></p><button type="button" id="logout" class="a-btn a-secondary">Выйти из панели</button></div>
+    <p id="access-error" class="a-error" role="alert"></p>
+  </div></dialog>
+  <dialog id="confirm-dialog" class="a-dialog a-confirm" aria-labelledby="confirm-title"><form method="dialog" class="a-dialog-body">
+    <h2 id="confirm-title">Подтвердите действие</h2><p id="confirm-copy"></p>
+    <div class="a-dialog-actions"><button type="submit" value="cancel" class="a-btn a-secondary" autofocus>Отмена</button><button type="submit" value="confirm" id="confirm-submit" class="a-btn a-primary">Подтвердить</button></div>
+  </form></dialog>
+  <noscript><p class="a-nojs">Для работы панели включите JavaScript в браузере.</p></noscript>
+  <script type="module" src="./shell.js"></script>
+</body></html>

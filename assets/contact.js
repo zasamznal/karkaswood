@@ -1,9 +1,52 @@
-const greeting = 'Дмитрий, здравствуйте! Хочу посмотреть барн-модуль 2,4 × 5 м в Косулине.';
 const supportedBedWidths = ['90', '140', '160'];
+const defaults = {
+  location: 'Косулино, Свердловская область',
+  phone: '+79935031990',
+  telegram: 'https://t.me/Karkaswood_ekb',
+};
 
 let showContact;
+let siteSettings = defaults;
 
-export function mountContact() {
+function telegramProfile(value) {
+  if (typeof value !== 'string') return null;
+  const match = value.trim().match(/^(?:@?([a-z][a-z\d_]{3,30}[a-z\d])|(?:https?:\/\/)?(?:www\.)?(?:t\.me|telegram\.me)\/([a-z][a-z\d_]{3,30}[a-z\d])\/?)$/i);
+  if (!match) return null;
+  const username = match[1] || match[2];
+  if (/^(addemoji|addlist|addstickers|addtheme|boost|confirmphone|contact|folder|giftcode|invoice|joinchat|login|proxy|setlanguage|share|socks|suggestedpost|tonsite)$/i.test(username)) return null;
+  return new URL('https://t.me/' + username);
+}
+
+function normalizePhone(value) {
+  if (typeof value !== 'string' || !/^\+?[\d\s().–-]+$/.test(value.trim())) return '';
+  let digits = value.replace(/\D/g, '');
+  if (!value.trim().startsWith('+')) {
+    if (digits.length === 10) digits = '7' + digits;
+    else if (/^[78]\d{10}$/.test(digits)) digits = '7' + digits.slice(1);
+    else return '';
+  }
+  if (!/^[1-9]\d{6,14}$/.test(digits) || (digits[0] === '7' && digits.length !== 11)) return '';
+  return '+' + digits;
+}
+
+function inquiryFor(item, selectedWidth, location) {
+  const greeting = 'Дмитрий, здравствуйте!';
+  if (item?.id === 'house-project') {
+    return `${greeting} Хочу обсудить индивидуальный проект дома. Какие данные об участке и будущем доме нужны для первого расчёта?`;
+  }
+  const name = typeof item?.name === 'string' ? item.name.trim() : '';
+  const dimensions = typeof item?.dimensions === 'string' ? item.dimensions.trim() : '';
+  const hasBed = (!item || item.id === 'barn-2-4-5') && supportedBedWidths.includes(selectedWidth);
+  let interest = 'Хочу приехать к вам в мастерскую и посмотреть ваши работы.';
+  if (name) interest = `Меня интересует модель из каталога — ${name}${dimensions ? ' (' + dimensions + ')' : ''}.`;
+  else if (hasBed) interest = 'Хочу посмотреть барн-модуль 2,4 × 5 м.';
+  const bedQuestion = hasBed ? ` Планирую поставить кровать шириной ${selectedWidth} см. Подскажите точную ширину между стенами внутри модуля?` : '';
+  const place = !name && !hasBed && typeof location === 'string' && location.trim() ? ` Место просмотра на сайте — ${location.trim()}.` : '';
+  return `${greeting} ${interest}${place}${bedQuestion} Когда можно приехать?`;
+}
+
+export function mountContact(settings) {
+  if (settings && typeof settings === 'object') siteSettings = { ...defaults, ...settings };
   if (showContact) return showContact;
 
   const styles = document.createElement('style');
@@ -43,6 +86,7 @@ export function mountContact() {
     .kw-contact-dialog .kw-contact-primary:hover { background: #7e3e27; }
     .kw-contact-dialog .kw-contact-phone { color: #30352f; margin: 6px 0 -10px; }
     .kw-contact-dialog .kw-contact-phone:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .kw-contact-dialog [hidden] { display: none; }
     .kw-contact-dialog :focus-visible { outline: 3px solid #a85635; outline-offset: 3px; }
     .kw-contact-dialog svg { flex: none; display: inline-block; }
     .kw-contact-announcement { position: absolute; width: 1px; height: 1px;
@@ -72,9 +116,9 @@ export function mountContact() {
         Открыть Telegram
         <svg aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15 15 4M5 4h10v10"/></svg>
       </a>
-      <a class="kw-contact-phone" href="tel:+79935031990" aria-label="Позвонить Дмитрию по номеру +7 993 503-19-90">
+      <a class="kw-contact-phone">
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7.3 3.2 4.9 3c-1.2 0-2.1 1-2 2.2.8 8.1 7.6 14.9 15.8 15.8 1.3.1 2.3-.8 2.3-2l-.3-2.4-5-2.2-1.8 1.9a17.4 17.4 0 0 1-6.5-6.5l2-1.8-2.1-4.8Z"/></svg>
-        +7 993 503-19-90
+        <span></span>
       </a>
       <span class="kw-contact-announcement" role="status"></span>
     </div>`;
@@ -85,24 +129,44 @@ export function mountContact() {
   const copyLabel = copy.querySelector('span');
   const announcement = dialog.querySelector('[role="status"]');
   const primary = dialog.querySelector('.kw-contact-primary');
+  const phoneLink = dialog.querySelector('.kw-contact-phone');
+  const phoneLabel = phoneLink.querySelector('span');
+  const heading = dialog.querySelector('.kw-contact-heading');
+  const description = dialog.querySelector('.kw-contact-desc');
 
   let opener;
-  showContact = (trigger) => {
+  showContact = (trigger, item) => {
     if (dialog.open) return;
     const bedWidth = document.documentElement.dataset.selectedBedWidth;
-    const bedQuestion = supportedBedWidths.includes(bedWidth)
-      ? ` Планирую поставить кровать шириной ${bedWidth} см. Подскажите точную ширину между стенами внутри модуля?`
-      : '';
-    const inquiry = `${greeting}${bedQuestion} Когда можно приехать?`;
-    const telegram = new URL('https://t.me/Karkaswood_ekb');
-    telegram.searchParams.set('text', inquiry);
+    const inquiry = inquiryFor(item, bedWidth, siteSettings.location);
+    const telegram = telegramProfile(siteSettings.telegram);
+    const phone = normalizePhone(siteSettings.phone);
+    primary.hidden = !telegram;
+    phoneLink.hidden = !phone;
+    primary.removeAttribute('href');
+    phoneLink.removeAttribute('href');
+    if (telegram) {
+      telegram.searchParams.set('text', inquiry);
+      primary.href = telegram.href;
+    }
+    if (phone) {
+      const formatted = phone.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4');
+      phoneLink.href = 'tel:' + phone;
+      phoneLink.setAttribute('aria-label', 'Позвонить Дмитрию по номеру ' + formatted);
+      phoneLabel.textContent = formatted;
+    } else {
+      phoneLink.removeAttribute('aria-label');
+      phoneLabel.textContent = '';
+    }
+    heading.textContent = item?.id === 'house-project' ? 'Обсудить проект дома' : 'Запись на просмотр';
+    description.textContent = telegram ? 'Напишите Дмитрию. Текст сообщения можно изменить в Telegram.'
+      : phone ? 'Позвоните Дмитрию, чтобы обсудить детали.' : 'Контакты мастерской пока не указаны.';
     draft.textContent = inquiry;
-    primary.href = telegram.href;
     opener = trigger instanceof HTMLElement ? trigger : document.activeElement;
     copyLabel.textContent = 'Скопировать текст';
     announcement.textContent = '';
     dialog.showModal();
-    primary.focus({ preventScroll: true });
+    (telegram ? primary : phone ? phoneLink : copy).focus({ preventScroll: true });
     document.documentElement.classList.add('kw-contact-active');
   };
   dialog.addEventListener('close', () => {

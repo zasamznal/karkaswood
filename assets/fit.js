@@ -1,6 +1,7 @@
 const BED_WIDTHS = [90, 140, 160];
 const BED_LENGTH = 200;
-const INSIDE_WIDTH = 220;
+const DEFAULT_INSIDE_WIDTH = 220;
+const OUTSIDE_WIDTH = 240;
 let nextId = 0;
 
 const styles = `
@@ -99,11 +100,11 @@ const styles = `
 `;
 
 // One drawing unit equals one centimetre. The outer walls span 500 × 240 units.
-function drawPlan(id, bedWidth) {
-  const clearance = INSIDE_WIDTH - bedWidth;
+function drawPlan(id, bedWidth, insideWidth) {
+  const clearance = insideWidth - bedWidth;
   const roomLeft = 46;
-  const roomTop = 62;
-  const roomBottom = roomTop + INSIDE_WIDTH;
+  const roomTop = 52 + (OUTSIDE_WIDTH - insideWidth) / 2;
+  const roomBottom = roomTop + insideWidth;
   const bedTop = roomBottom - bedWidth;
   const bedEnd = roomLeft + BED_LENGTH;
   const pillowCount = bedWidth === 90 ? 1 : 2;
@@ -117,7 +118,7 @@ function drawPlan(id, bedWidth) {
 
   return `
     <title>План барн-модуля с кроватью шириной ${bedWidth} см</title>
-    <desc>Кровать длиной 200 см стоит вдоль стены. При внутренней ширине 220 см рядом с кроватью остаётся ${clearance} см.</desc>
+    <desc>Кровать длиной ${BED_LENGTH} см стоит вдоль стены. При внутренней ширине ${insideWidth} см рядом с кроватью остаётся ${clearance} см.</desc>
     <defs>
       <pattern id="${id}-floor" width="28" height="20" patternUnits="userSpaceOnUse">
         <rect width="28" height="20" fill="#f8f5ec"/>
@@ -139,7 +140,8 @@ function drawPlan(id, bedWidth) {
       <text y="6" text-anchor="middle" fill="#565246" font-size="18">2,4 м</text>
     </g>
     <rect x="36" y="52" width="500" height="240" fill="#625d50"/>
-    <rect x="${roomLeft}" y="${roomTop}" width="480" height="${INSIDE_WIDTH}" fill="url(#${id}-floor)"/>
+    <rect x="${roomLeft}" y="${roomTop}" width="480" height="${insideWidth}" fill="url(#${id}-floor)"/>
+    <rect x="36" y="52" width="500" height="${OUTSIDE_WIDTH}" fill="none" stroke="#625d50"/>
     <rect x="${roomLeft}" y="${roomTop}" width="${BED_LENGTH}" height="${clearance}" fill="url(#${id}-hatch)"/>
     <path d="M${bedEnd} ${roomTop}v${clearance}" stroke="#b27f5d" stroke-dasharray="4 4"/>
     <g>
@@ -159,7 +161,10 @@ function drawPlan(id, bedWidth) {
   `;
 }
 
-export function mountFit(container, { onChange } = {}) {
+export function mountFit(container, { insideWidth, onChange } = {}) {
+  const requestedWidth = Number(insideWidth);
+  const roomWidth = Number.isInteger(requestedWidth) && requestedWidth >= 185 && requestedWidth <= OUTSIDE_WIDTH
+    ? requestedWidth : DEFAULT_INSIDE_WIDTH;
   const id = `fit-plan-${++nextId}`;
   const root = document.createElement('div');
   root.className = 'fit-root';
@@ -188,29 +193,39 @@ export function mountFit(container, { onChange } = {}) {
           <span class="fit-result-label">Свободный проход</span>
           <span class="fit-value"><b></b><small>см</small></span>
         </p>
-        <p class="fit-note">Для примера взята внутренняя ширина 220 см. Кровать длиной 200 см стоит вплотную к стене. Точные размеры зависят от отделки и каркаса кровати.</p>
+        <p class="fit-note">Для примера взята внутренняя ширина ${roomWidth} см. Кровать длиной ${BED_LENGTH} см стоит вплотную к стене. Точные размеры зависят от отделки и каркаса кровати.</p>
       </div>
     </div>`;
 
   const svg = root.querySelector('.fit-plan');
   const result = root.querySelector('.fit-value b');
+  let selectedWidth;
   function update(bedWidth) {
-    const clearance = INSIDE_WIDTH - bedWidth;
-    svg.innerHTML = drawPlan(id, bedWidth);
+    selectedWidth = bedWidth;
+    const clearance = roomWidth - bedWidth;
+    svg.innerHTML = drawPlan(id, bedWidth, roomWidth);
     result.textContent = String(clearance);
-    onChange?.({ bedWidth, bedLength: BED_LENGTH, insideWidth: INSIDE_WIDTH, clearance });
+    onChange?.({ bedWidth, bedLength: BED_LENGTH, insideWidth: roomWidth, clearance });
   }
   function handleChange(event) {
     if (event.target.name === `${id}-width` && event.target.checked) {
       update(Number(event.target.value));
     }
   }
+  function handleClick(event) {
+    // Clicking the selected radio is an explicit choice, even though it emits no change.
+    if (event.target.name === `${id}-width` && Number(event.target.value) === selectedWidth) {
+      update(selectedWidth);
+    }
+  }
   root.addEventListener('change', handleChange);
+  root.addEventListener('click', handleClick);
   container.replaceChildren(root);
   update(140);
   return {
     destroy() {
       root.removeEventListener('change', handleChange);
+      root.removeEventListener('click', handleClick);
       root.remove();
     },
   };

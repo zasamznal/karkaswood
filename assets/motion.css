@@ -1,0 +1,52 @@
+.kw-reading-progress {
+  position: fixed;
+  z-index: 12;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--copper, #a5482b);
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+@keyframes kw-intro-arrive {
+  from { opacity: .84; translate: 0 .19em; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes kw-section-arrive {
+  from { opacity: .8; translate: 0 9px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kw-motion-intro {
+    animation: kw-intro-arrive .54s cubic-bezier(.2,.75,.2,1) backwards;
+  }
+  .hero-intro.kw-motion-intro { animation-delay: 35ms; }
+  .hero-actions.kw-motion-intro { animation-delay: 65ms; }
+
+  .kw-motion-enter {
+    animation: kw-section-arrive .45s cubic-bezier(.16,.72,.18,1) backwards;
+  }
+  .metrics > :nth-child(2n).kw-motion-enter,
+  .photo:nth-child(2n).kw-motion-enter { animation-delay: 40ms; }
+  .kw-motion-intro:focus-within, .kw-motion-enter:focus-within { animation: none; }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .photo img {
+    transition: transform .48s cubic-bezier(.2,.72,.2,1);
+  }
+  .photo:is(:hover, :focus-visible) img { transform: scale(1.045); }
+  .photo-label .icon { transition: translate .22s ease-out; }
+  .photo:is(:hover, :focus-visible) .photo-label .icon { translate: 2px -2px; }
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .photo:hover img { transform: none; }
+}
+
+@media print {
+  .kw-reading-progress { display: none; }
+}
