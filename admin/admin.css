@@ -134,6 +134,22 @@ body:has(dialog[open]){overflow:hidden}
 .a-preview-photo{aspect-ratio:2.01;object-position:76% 47%;max-height:280px}
 .a-preview-body{gap:1px}
 .a-empty p{margin:0 0 7px}
+.a-prices{margin-bottom:18px;background:var(--paper)}
+.a-price-status{padding:15px 18px;margin:0;color:var(--muted);font-size:.87rem}
+.a-prices summary{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;min-height:52px;padding:12px 18px}
+.a-prices summary::-webkit-details-marker{display:none}
+.a-prices summary::after{content:"";width:7px;height:7px;flex:none;margin:-3px 2px 0 0;transform:rotate(45deg);border:solid var(--muted);border-width:0 1.5px 1.5px 0}
+.a-prices details[open] summary::after{transform:rotate(225deg);margin-top:3px}
+.a-prices summary:focus-visible{outline-offset:-3px}
+.a-prices summary strong{font-size:.92rem;line-height:1.3}
+.a-price-count{border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--ink);font-size:.78rem;white-space:nowrap}
+.a-price-expand{margin-left:auto;color:var(--muted);font-size:.8rem}
+.a-price-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px;list-style:none;padding:0 18px 9px;margin:0}
+.a-price-list li{border-top:1px solid var(--line);min-width:0}
+.a-price-list a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:43px;padding:6px 0;color:var(--ink);font-size:.85rem;text-decoration:none;overflow-wrap:anywhere}
+.a-price-list a:hover span{text-decoration:underline;text-underline-offset:3px}
+.a-price-list .a-icon{width:15px;height:15px;color:var(--muted)}
+@media(max-width:570px){.a-prices summary{padding-inline:12px;gap:7px}.a-price-expand{display:none}.a-prices summary::after{margin-left:auto}.a-price-list{grid-template-columns:minmax(0,1fr);padding-inline:12px}}
 .a-content .kw-settings :is(#kw-season,#kw-legal){scroll-margin-top:88px}
 @media(max-width:1150px){
  .a-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}

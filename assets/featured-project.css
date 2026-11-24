@@ -1,0 +1,111 @@
+#viewer.fp-ready [hidden] { display: none !important; }
+#viewer.fp-ready .tour-picker-row {
+  display: grid;
+  grid-template-columns: auto minmax(190px, 360px) 1fr;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+#viewer.fp-ready .tour-picker-row label { color: var(--muted, #525d50); }
+#viewer.fp-ready .tour-picker-row select {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  text-overflow: ellipsis;
+}
+#viewer.fp-ready .tour-picker-row select:disabled { color: var(--ink, #24372b); opacity: 1; cursor: default; }
+#viewer.fp-ready :is(.fp-expand, .fp-retry) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 7px 13px;
+  border: 1px solid var(--line, #c5cfbf);
+  border-radius: 4px;
+  color: var(--forest, #304435);
+  background: var(--paper, #f8f7f0);
+  font: 550 .89rem/1.25 var(--sans, sans-serif);
+  cursor: pointer;
+}
+#viewer.fp-ready .fp-expand { justify-self: end; }
+#viewer.fp-ready :is(.fp-expand, .fp-retry):hover { background: #e8ede2; border-color: #94a68d; }
+#viewer.fp-ready :is(.fp-expand, .fp-retry):focus-visible { outline: 3px solid #926744; outline-offset: 3px; }
+#viewer.fp-ready .fp-expand .icon { width: 16px; height: 16px; }
+#viewer.fp-ready .fp-facts {
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4vw, 62px);
+  padding: 13px clamp(15px, 2vw, 25px);
+  border: 1px solid var(--line, #c5cfbf);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  color: #263d2e;
+  background: #edf0e6;
+}
+#viewer.fp-ready .fp-measure { display: flex; align-items: center; gap: 12px; flex: none; }
+#viewer.fp-ready .fp-measure .icon { width: 27px; height: 27px; color: #788870; }
+#viewer.fp-ready .fp-measure-text { display: grid; gap: 2px; }
+#viewer.fp-ready .fp-caption { color: #53624f; font-size: .77rem; line-height: 1.25; }
+#viewer.fp-ready .fp-dimensions {
+  font: 600 clamp(1.38rem, 2.25vw, 1.9rem)/1.05 var(--serif, Georgia, serif);
+  font-variant-numeric: lining-nums;
+}
+#viewer.fp-ready .fp-summary {
+  max-width: 72ch;
+  margin: 0;
+  padding-left: clamp(16px, 2.8vw, 39px);
+  border-left: 1px solid #b4c2ae;
+  color: #485a47;
+  font-size: .88rem;
+  line-height: 1.46;
+}
+#viewer.fp-ready .fp-facts:has(.fp-measure[hidden]) .fp-summary { border-left: 0; padding-left: 0; }
+#viewer.fp-ready .fp-surface { position: absolute; inset: 0; min-height: 0; min-width: 0; }
+#viewer.fp-ready .fp-status {
+  position: absolute;
+  inset: 18% 8%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+html[data-kw-season="newyear"] #viewer.fp-ready .fp-facts {
+  border-color: #294c45;
+  border-top: 2px solid #c8ad7e;
+  color: #f3f7f5;
+  background: linear-gradient(108deg, #133631, #203f3a 78%, #173531);
+}
+html[data-kw-season="newyear"] #viewer.fp-ready .fp-caption,
+html[data-kw-season="newyear"] #viewer.fp-ready .fp-summary { color: #d3e3d8; }
+html[data-kw-season="newyear"] #viewer.fp-ready .fp-measure .icon { color: #efce91; }
+html[data-kw-season="newyear"] #viewer.fp-ready .fp-summary { border-color: #698b7e; }
+@media (max-width: 620px) {
+  #viewer.fp-ready .tour-picker-row { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 9px; margin-bottom: 12px; }
+  #viewer.fp-ready .tour-picker-row label { grid-column: 1 / -1; font-size: .81rem; }
+  #viewer.fp-ready .tour-picker-row:has(.fp-expand[hidden]) select { grid-column: 1 / -1; }
+  #viewer.fp-ready .fp-expand { min-width: 44px; padding: 6px 11px; font-size: .8rem; }
+  #viewer.fp-ready .fp-facts { align-items: flex-start; gap: 11px; padding: 11px 12px; }
+  #viewer.fp-ready .fp-measure { gap: 6px; }
+  #viewer.fp-ready .fp-measure .icon { width: 18px; height: 18px; }
+  #viewer.fp-ready .fp-summary { padding-left: 11px; font-size: .77rem; line-height: 1.4; }
+}
+@media (max-width: 440px) {
+  #viewer.fp-ready .tour-picker-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  #viewer.fp-ready .fp-expand {
+    justify-self: start;
+    margin: 2px 0 -2px;
+    min-height: 40px;
+    padding: 4px 0;
+    border-color: transparent;
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  #viewer.fp-ready .fp-measure { display: block; }
+  #viewer.fp-ready .fp-measure .icon { display: none; }
+}

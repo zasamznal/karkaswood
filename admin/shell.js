@@ -2,6 +2,7 @@ import { loadPublicSite } from '../assets/site-data.js';
 import { connectOwner } from './owner.js';
 import { mountItems } from './items.js';
 import { mountSettings } from './settings.js';
+import { getOffer } from '../assets/project-offers.js';
 
 const KEY = 'kw:site-draft:v1';
 const labels = {
@@ -213,6 +214,28 @@ function actionLink(label, href, glyph, description) {
   link.append(mark,copy);
   return link;
 }
+function priceOverview(visibleItems) {
+  const missing=visibleItems.filter(item=>getOffer(item).currentPrice===null);
+  const section=element('section','a-box a-prices');
+  section.setAttribute('aria-label','Цены в каталоге');
+  if (!missing.length) {
+    const status=visibleItems.length?'Для всех моделей в каталоге указана актуальная цена.':'Цены появятся здесь, когда вы добавите первую модель в каталог.';
+    section.append(element('p','a-price-status',status));
+    return section;
+  }
+  const details=element('details'), toggle=element('summary');
+  toggle.append(element('strong','','Без актуальной цены'),element('span','a-price-count',missing.length+' из '+visibleItems.length),element('span','a-price-expand','Выбрать постройку'));
+  const list=element('ul','a-price-list');
+  for (const item of missing) {
+    const row=element('li'), link=element('a');
+    link.href='#catalog'; link.dataset.editId=item.id; link.dataset.editField='price';
+    link.setAttribute('aria-label','Указать актуальную цену для проекта «'+item.name+'»');
+    link.append(element('span','',item.name),icon('edit'));
+    row.append(link); list.append(row);
+  }
+  details.append(toggle,list); section.append(details);
+  return section;
+}
 function overview() {
   const visibleItems=data.items.filter(item=>item.published!==false);
   const winter=data.settings.theme==='newyear';
@@ -260,7 +283,7 @@ function overview() {
   const body=element('div','a-preview-body'), settings=element('a','a-card-link','Настроить оформление');
   settings.href='#settings/season';
   body.append(element('h2','','Оформление сайта'),element('p','',winter?'Новогодний вид':'Обычный вид'),settings);
-  preview.append(image,body); grid.append(listBox,preview); panel.replaceChildren(quick,grid);
+  preview.append(image,body); grid.append(listBox,preview); panel.replaceChildren(quick,priceOverview(visibleItems),grid);
 }
 function render(next=routeFromHash(), focus=false) {
   editor?.destroy?.(); editor=null; route=next; tab=next.split('/')[0]; setMenu(false);
@@ -316,7 +339,7 @@ document.addEventListener('click',async event=>{
   event.preventDefault();
   if (!await navigate(target)) return;
   if (link.hasAttribute('data-new-item')) editor?.openNew?.();
-  if (link.dataset.editId) editor?.openItem?.(link.dataset.editId);
+  if (link.dataset.editId) editor?.openItem?.(link.dataset.editId,link.dataset.editField);
 });
 window.addEventListener('hashchange',async()=>{
   const next=routeFromHash();

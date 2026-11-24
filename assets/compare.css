@@ -1,0 +1,123 @@
+.kwcmp-root {
+  --cmp-paper: #fbf9f3;
+  --cmp-text: #28352d;
+  --cmp-lines: #d4dbcc;
+  --cmp-subtle: #eef0e8;
+  --cmp-muted: #526155;
+  --cmp-action: #2d4838;
+  --cmp-on-action: #fff;
+  --cmp-focus: #a34a28;
+  color: var(--cmp-text);
+  font-family: inherit;
+}
+[data-kw-season="newyear"] .kwcmp-root {
+  --cmp-paper: #f7f3e8;
+  --cmp-text: #1d372f;
+  --cmp-lines: #d7cdb7;
+  --cmp-subtle: #eee8d9;
+  --cmp-muted: #555e4e;
+  --cmp-action: #214e42;
+  --cmp-focus: #a24e28;
+}
+.kwcmp-root *, .kwcmp-root *::before, .kwcmp-root *::after { box-sizing:border-box }
+.kwcmp-root [hidden] {display:none!important}
+.kwcmp-root button, .kwcmp-root select {font:inherit}
+.kwcmp-root button {cursor:pointer}
+.kwcmp-root :focus-visible {outline:3px solid var(--cmp-focus);outline-offset:3px}
+.kwcmp-sr {position:absolute;overflow:hidden;width:1px;height:1px;clip-path:inset(50%);white-space:nowrap}
+.kwcmp-dock {
+  position:fixed;z-index:22;right:max(12px,env(safe-area-inset-right));bottom:max(15px,env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:10px;min-height:48px;max-width:calc(100vw - 24px);padding:6px 14px 6px 9px;
+  border:1px solid #55705d;border-radius:30px;background:var(--cmp-action);color:var(--cmp-on-action);
+  box-shadow:0 3px 18px #11291e33;font-size:.93rem!important;font-weight:630!important;line-height:1.3;
+}
+.kwcmp-dock:hover {filter:brightness(1.10)}
+[data-kw-season="newyear"] .kwcmp-dock {background:#183e33;border-color:#ae915a;color:#f8edd3}
+.kwcmp-dock-photos {display:flex;padding-left:4px;align-items:center}
+.kwcmp-dock-photos:empty {display:none}
+.kwcmp-dock-photos img {display:block;width:29px;height:29px;margin-left:-4px;border:1.5px solid #fffc;border-radius:50%;object-fit:cover}
+.kwcmp-chevron {font-size:1.1rem;font-weight:500}
+.kwcmp-notice {
+  position:fixed;z-index:23;right:max(12px,env(safe-area-inset-right));bottom:calc(74px + env(safe-area-inset-bottom));
+  max-width:min(325px,calc(100vw - 24px));margin:0;padding:11px 15px;background:var(--cmp-paper);color:var(--cmp-text);
+  border:1px solid var(--cmp-lines);border-radius:7px;box-shadow:0 2px 16px #12221835;font-size:.91rem;line-height:1.45;
+}
+.kwcmp-dialog,.kwcmp-photo-dialog {
+  position:fixed;inset:0;margin:auto;color:var(--cmp-text);background:var(--cmp-paper);
+  width:min(1060px,calc(100% - 32px));max-width:calc(100% - 32px);max-height:calc(100dvh - 32px);
+  padding:clamp(16px,3vw,36px);border:1px solid var(--cmp-lines);border-radius:9px;
+  box-shadow:0 18px 75px #152d224a;overflow:auto;overscroll-behavior:contain;
+}
+.kwcmp-dialog::backdrop,.kwcmp-photo-dialog::backdrop {background:#14251ed4}
+.kwcmp-head,.kwcmp-selection,.kwcmp-thumb-row,.kwcmp-footer {display:flex;align-items:center;justify-content:space-between;gap:14px}
+.kwcmp-dialog>.kwcmp-head {position:sticky;top:0;z-index:2;background:var(--cmp-paper);padding:3px 0}
+.kwcmp-head h2 {margin:0;color:var(--cmp-text);font:600 clamp(1.8rem,3.7vw,3rem)/1.05 var(--serif,"Cormorant Garamond",Georgia,serif);letter-spacing:-.035em}
+.kwcmp-close,.kwcmp-remove {
+  display:inline-grid;place-items:center;flex:none;min-width:42px;min-height:42px;
+  padding:0;border:1px solid var(--cmp-lines);border-radius:50%;
+  background:var(--cmp-paper);color:var(--cmp-text);font-family:Arial,sans-serif!important;font-size:1.55rem!important;font-weight:400!important;line-height:1;
+}
+.kwcmp-close:hover,.kwcmp-remove:hover {background:var(--cmp-subtle)}
+.kwcmp-selection {min-height:46px;flex-wrap:wrap;margin:14px 0 16px}
+.kwcmp-count,.kwcmp-scroll-hint {margin:0;color:var(--cmp-muted);font-size:.90rem;line-height:1.45}
+.kwcmp-picker {max-width:100%;min-width:0}
+.kwcmp-picker select {width:100%;max-width:320px;min-height:43px;padding:5px 30px 5px 12px;border:1px solid var(--cmp-lines);border-radius:5px;background:var(--cmp-paper);color:var(--cmp-text);font-size:.89rem;cursor:pointer}
+.kwcmp-scroll-hint {display:none}
+.kwcmp-table-wrap {width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.kwcmp-table-wrap:focus-visible {outline-offset:-3px}
+.kwcmp-table {width:100%;table-layout:fixed;border-collapse:collapse;color:var(--cmp-text);font-size:.94rem;line-height:1.45}
+.kwcmp-table th,.kwcmp-table td {padding:13px 16px;vertical-align:top;text-align:left;overflow-wrap:anywhere}
+.kwcmp-table thead th,.kwcmp-table thead td {vertical-align:top}
+.kwcmp-table tbody th,.kwcmp-table tbody td {border-top:1px solid var(--cmp-lines)}
+.kwcmp-table tbody td+td,.kwcmp-table .kwcmp-model+.kwcmp-model {border-left:1px solid var(--cmp-lines)}
+.kwcmp-table .kwcmp-corner,.kwcmp-table .kwcmp-row-label {width:17%;padding-left:0}
+.kwcmp-row-label {color:var(--cmp-muted);font-size:.85rem;font-weight:570;line-height:1.4}
+.kwcmp-model {font-weight:600}
+.kwcmp-thumb-row {align-items:flex-start;gap:4px;margin-bottom:8px}
+.kwcmp-thumb {display:block;min-width:0;padding:0;border:0;border-radius:5px;overflow:hidden;background:var(--cmp-subtle)}
+.kwcmp-thumb img {display:block;width:auto;max-width:100%;height:clamp(54px,7vw,90px);aspect-ratio:1.4;object-fit:cover}
+.kwcmp-remove {min-width:38px;min-height:38px;margin-left:auto;font-size:1.18rem!important}
+.kwcmp-project-name {display:block;font:600 clamp(1.08rem,1.85vw,1.6rem)/1.12 var(--serif,"Cormorant Garamond",Georgia,serif);letter-spacing:-.015em}
+.kwcmp-price {font-weight:600;font-variant-numeric:tabular-nums}
+.kwcmp-actions {display:flex;align-items:center;gap:6px 9px;flex-wrap:wrap}
+.kwcmp-action,.kwcmp-source,.kwcmp-request {
+  display:inline-flex;align-items:center;justify-content:center;min-height:39px;padding:5px 10px;
+  border:1px solid var(--cmp-lines);border-radius:5px;background:var(--cmp-paper);color:var(--cmp-text);font:inherit;font-size:.83rem!important;line-height:1.3;text-decoration:none;
+}
+.kwcmp-source {padding-inline:0;border-color:transparent;text-decoration:underline;text-underline-offset:.17em}
+.kwcmp-action:hover,.kwcmp-request:hover {filter:brightness(.93)}
+.kwcmp-contact,.kwcmp-request {border-color:var(--cmp-action);background:var(--cmp-action);color:var(--cmp-on-action)}
+.kwcmp-list {margin:0;padding:0 0 0 1.05em}
+.kwcmp-list li+li {margin-top:4px}
+.kwcmp-footer {justify-content:flex-end;border-top:1px solid var(--cmp-lines);margin-top:6px;padding-top:16px}
+.kwcmp-request {min-height:44px;padding:9px 14px;font-size:.91rem!important;font-weight:600!important}
+.kwcmp-photo-dialog {width:max-content;max-width:min(1000px,calc(100% - 32px));padding:14px}
+.kwcmp-photo-dialog .kwcmp-head {margin-bottom:12px}
+.kwcmp-photo-dialog .kwcmp-head h2 {font-size:clamp(1.35rem,2.8vw,2rem)}
+.kwcmp-photo-box {display:grid;place-items:center}
+.kwcmp-photo-box img {display:block;max-height:calc(100dvh - 145px);max-width:100%;width:auto;height:auto;object-fit:contain}
+@media (max-width:700px) {
+  .kwcmp-dialog {width:calc(100% - 12px);max-width:calc(100% - 12px);max-height:calc(100dvh - 12px);padding:16px 10px}
+  .kwcmp-selection {gap:5px 10px;margin:9px 0 12px}
+  .kwcmp-picker select {max-width:min(210px,calc(100vw - 45px))}
+  .kwcmp-table,.kwcmp-table thead,.kwcmp-table tbody {display:block}
+  .kwcmp-table tr {display:grid;grid-template-columns:repeat(var(--kwcmp-cols),minmax(0,1fr));align-items:stretch}
+  .kwcmp-table .kwcmp-corner {display:none}
+  .kwcmp-table .kwcmp-row-label {grid-column:1/-1;width:auto;padding:5px 7px;background:var(--cmp-subtle)}
+  .kwcmp-row-label span {position:sticky;left:7px}
+  .kwcmp-table th,.kwcmp-table td {padding:8px 7px}
+  .kwcmp-table tbody td {border-top:0;font-size:.87rem;line-height:1.4}
+  .kwcmp-thumb-row {position:relative;display:block;margin-bottom:6px}
+  .kwcmp-thumb {width:100%;height:72px}
+  .kwcmp-thumb img {width:100%;height:100%;aspect-ratio:auto}
+  .kwcmp-remove {position:absolute;top:2px;right:2px;min-height:38px;min-width:38px;box-shadow:0 1px 4px #13291b17}
+  .kwcmp-thumb-row:has(>.kwcmp-remove:only-child),.kwcmp-thumb-row:has(>.kwcmp-thumb[hidden]) {height:42px}
+  .kwcmp-action,.kwcmp-source {min-height:40px}
+}
+@media (max-width:470px) {
+  .kwcmp-table[data-columns="3"] {min-width:495px}
+  .kwcmp-scroll-hint:not([hidden]) {display:block;margin:0 0 8px}
+  .kwcmp-dock {bottom:max(10px,env(safe-area-inset-bottom));right:8px}
+  .kwcmp-request {width:100%}
+  .kwcmp-close {min-height:44px;min-width:44px}
+}

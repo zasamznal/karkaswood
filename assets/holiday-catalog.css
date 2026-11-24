@@ -132,10 +132,11 @@ html[data-kw-season="newyear"] .workshop-catalog {
   box-shadow: 0 24px 76px #071d1ad4;
 }
 [data-kw-season="newyear"] .kc-dialog::backdrop {background:#0b211dc9}
-[data-kw-season="newyear"] .kc-detail > img {
+[data-kw-season="newyear"] .kc-gallery > img {
   border-bottom: 2px solid #ae925a;
   background: radial-gradient(ellipse at center,#365648,#1b3930);
 }
+[data-kw-season="newyear"] .kc-gallery-bar {border-color:var(--kw-cat-rule);background:#f0f4ed}
 [data-kw-season="newyear"] .kc-description {color:#183a30}
 [data-kw-season="newyear"] .kc-description > .kc-kind {color:#71501e;letter-spacing:.15em}
 [data-kw-season="newyear"] .kc-description > .kc-kind::before {
@@ -216,3 +217,17 @@ html[data-kw-season="newyear"] .workshop-catalog {
   [data-kw-season="newyear"] .kc-card > .kc-tour {top:12px;left:12px;min-height:41px}
   [data-kw-season="newyear"] .kc-facts {grid-template-columns:auto 1fr;gap:6px 14px;font-size:.94rem}
 }
+
+[data-kw-season="newyear"] .kc-card-open {height:auto;flex:none}
+[data-kw-season="newyear"] .kc-card-info {padding-bottom:5px;border-radius:0;background:transparent}
+[data-kw-season="newyear"] .kc-card-terms {margin:4px 0 15px;padding:0 clamp(15px,1.5vw,25px);color:#fff9e9}
+[data-kw-season="newyear"] .kc-card-terms .kc-price,
+[data-kw-season="newyear"] .kc-card-terms .kc-reference-amount {color:#f5dba1}
+[data-kw-season="newyear"] .kc-card-terms :is(.kc-price-type,.kc-reference-label,.kc-card-condition){color:#d6e4d7}
+[data-kw-season="newyear"] .kc-card-terms .kc-card-feature {color:#fff8e9}
+[data-kw-season="newyear"] .kc-card-actions {margin: auto clamp(15px,1.5vw,25px) 12px;border-color:#536d5d}
+[data-kw-season="newyear"] .kc-card-actions .kc-contact {background:#e9cea0;color:#183d31}
+[data-kw-season="newyear"] .kc-card-actions .kc-compare {color:#f6ead1}
+[data-kw-season="newyear"] .kc-card-actions .kc-compare:hover,
+[data-kw-season="newyear"] .kc-card-actions .kc-compare[aria-pressed="true"] {background:#35574a;color:#ffe9b4;border-color:#8c9b79}
+[data-kw-season="newyear"] .kc-card-terms .kc-owner-note {color:#eaeede}

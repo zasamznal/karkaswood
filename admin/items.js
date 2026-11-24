@@ -1,4 +1,5 @@
 import { tourTemplates } from '../assets/tour-registry.js';
+import { getOffer } from '../assets/project-offers.js';
 
 const categories = new Map([
   ['utility', 'Хозблоки'],
@@ -10,6 +11,7 @@ const tourNames = new Map(Object.entries(tourTemplates));
 const maxPhotoBytes = 150000;
 const uploadedPhoto = /^data:image\/(?:webp|jpeg);base64,[a-z\d+/]+=*$/i;
 const rubles = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 });
+const publishedDate = new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
 const siteRoot = new URL('../', import.meta.url);
 const cssUrl = new URL('items.css', import.meta.url).href;
 
@@ -169,7 +171,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
     (returnTo?.isConnected && browser.contains(returnTo) ? returnTo : add).focus();
   }
 
-  function edit(item) {
+  function edit(item, focusField) {
     const form = element('form', 'kwitems-form');
     form.innerHTML = `
       <header class="kwitems-form-header"><h3></h3><button type="button" class="kwitems-back">К каталогу</button></header>
@@ -183,7 +185,9 @@ export function mountItems(container, { items = [], onChange } = {}) {
             <label class="kwitems-field kwitems-wide">Название<input name="name" type="text" required maxlength="120" placeholder="Например, Барн-модуль"></label>
             <label class="kwitems-field">Раздел<select name="category"></select></label>
             <label class="kwitems-field">Размеры<input name="dimensions" type="text" maxlength="80" placeholder="2,4 × 5 м"></label>
-            <label class="kwitems-field">Цена, ₽<input name="price" type="number" inputmode="numeric" min="1" step="1" placeholder="По запросу"></label>
+            <div class="kwitems-field kwitems-wide"><label>Актуальная цена, ₽<input name="price" type="number" inputmode="numeric" min="1" step="1" aria-describedby="kw-price-help" placeholder="По запросу"></label><small id="kw-price-help">Введите стоимость в рублях целым числом. Оставьте поле пустым, если цену нужно уточнить у мастерской.</small></div>
+            <div class="kwitems-field kwitems-wide"><label>Что входит в стоимость<textarea name="offerNote" rows="2" maxlength="500" aria-describedby="kw-offer-help" placeholder="Например, утепление и электрика входят, доставка рассчитывается отдельно"></textarea></label><small id="kw-offer-help">Укажите комплектацию проекта и дополнительные расходы, если условия известны.</small></div>
+            <details class="kwitems-reference kwitems-wide" hidden><summary>Цена и комплектация из публикации</summary><div class="kwitems-reference-body"></div></details>
             <label class="kwitems-field kwitems-wide">Описание<textarea name="summary" rows="3" maxlength="1200" placeholder="Материалы, планировка, особенности проекта"></textarea></label>
             <label class="kwitems-publish kwitems-wide"><input name="published" type="checkbox">Показывать в каталоге</label>
           </div>
@@ -203,7 +207,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
             <div class="kwitems-card-image"><div class="kwitems-preview"></div><span class="kwitems-live-tour" hidden>Обзор в 3D</span></div>
             <div class="kwitems-card-copy">
               <div class="kwitems-live-meta"><span data-kw-live="category"></span><span data-kw-live="dimensions"></span></div>
-              <h4 data-kw-live="name"></h4><strong data-kw-live="price"></strong>
+              <h4 data-kw-live="name"></h4><strong data-kw-live="price"></strong><p class="kwitems-offer-note" data-kw-live="offerNote" hidden></p>
               <p data-kw-live="summary"></p><span class="kwitems-badge" data-kw-live="visibility"></span>
             </div>
           </div>
@@ -257,7 +261,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
       if (disclosure) disclosure.open = true;
     }, true);
     fields.category.value = categories.has(original.category) ? original.category : filter.value || 'utility';
-    for (const key of ['name', 'dimensions', 'summary', 'source']) fields[key].value = original[key] || '';
+    for (const key of ['name', 'dimensions', 'summary', 'source', 'offerNote']) fields[key].value = original[key] || '';
     fields.price.value = original.price ?? '';
     fields.published.checked = original.published !== false;
     fields.photo.value = context.photo.startsWith('data:') ? '' : context.photo;
@@ -266,6 +270,33 @@ export function mountItems(container, { items = [], onChange } = {}) {
     const remove = form.querySelector('.kwitems-remove-photo');
     const save = form.querySelector('button[type="submit"]');
     const live = Object.fromEntries(Array.from(form.querySelectorAll('[data-kw-live]'), node => [node.dataset.kwLive, node]));
+    const archive = form.querySelector('.kwitems-reference');
+    const archiveBody = archive.querySelector('.kwitems-reference-body');
+    let displayedReference;
+    function updateReference() {
+      const candidate = {...original, name:fields.name.value.trim(), category:fields.category.value, dimensions:fields.dimensions.value.trim(), source:fields.source.value.trim(), tourId:fields.tourId.value};
+      const offer = getOffer(candidate);
+      const reference = offer.reference;
+      archive.hidden = !reference;
+      if (!reference) {
+        archive.open = false;
+        displayedReference = undefined;
+        archiveBody.replaceChildren();
+        return;
+      }
+      if (displayedReference === reference.source) return;
+      displayedReference = reference.source;
+      const date = publishedDate.format(new Date(reference.date+'T00:00:00Z'));
+      const source = element('a','','Публикация мастерской от '+date);
+      source.href = reference.source; source.target = '_blank'; source.rel = 'noopener noreferrer';
+      archiveBody.replaceChildren(element('strong','',rubles.format(reference.price)+' на дату публикации'),source);
+      if (reference.description) archiveBody.append(element('p','',reference.description));
+      if (offer.included.length) {
+        const list = element('ul');
+        for (const feature of offer.included) list.append(element('li','',feature));
+        archiveBody.append(element('span','','В показанной комплектации'),list);
+      }
+    }
     function updateCardText() {
       live.category.textContent = categories.get(fields.category.value) || '';
       live.dimensions.textContent = fields.dimensions.value.trim();
@@ -273,9 +304,12 @@ export function mountItems(container, { items = [], onChange } = {}) {
       live.summary.textContent = fields.summary.value.trim();
       const price = fields.price.valueAsNumber;
       live.price.textContent = Number.isSafeInteger(price) && price > 0 ? rubles.format(price) : 'Цена по запросу';
+      live.offerNote.textContent = fields.offerNote.value.trim();
+      live.offerNote.hidden = !live.offerNote.textContent;
       live.visibility.textContent = fields.published.checked ? 'Показана в каталоге' : 'Скрыта из каталога';
       live.visibility.classList.toggle('kwitems-visible', fields.published.checked);
       form.querySelector('.kwitems-live-tour').hidden = !tourNames.has(fields.tourId.value);
+      updateReference();
     }
     updateCardText();
     let lastPhoto;
@@ -382,6 +416,9 @@ export function mountItems(container, { items = [], onChange } = {}) {
         published: fields.published.checked,
       };
       const selectedTour = fields.tourId.value;
+      const offerNote = fields.offerNote.value.trim();
+      if (offerNote) result.offerNote = offerNote;
+      else delete result.offerNote;
       if (selectedTour === inheritedTour || (selectedTour === 'none' && !inheritedTour)) delete result.tourId;
       else result.tourId = selectedTour;
       closeEditor();
@@ -392,7 +429,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
     panel.replaceChildren(form);
     panel.hidden = false;
     browser.hidden = true;
-    fields.name.focus();
+    (focusField==='price' ? fields.price : fields.name).focus();
   }
 
   function renderList() {
@@ -477,10 +514,10 @@ export function mountItems(container, { items = [], onChange } = {}) {
       edit();
       return true;
     },
-    openItem(id) {
+    openItem(id,focusField) {
       const item = records.find(record => record.id === id);
       if (editor || !item) return false;
-      edit(item);
+      edit(item,focusField);
       return true;
     },
     hasPendingChanges() { return Boolean(editor && (editor.dirty || editor.busy)); },

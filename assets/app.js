@@ -1,5 +1,9 @@
 import { mountContact } from './contact.js';
 import { mountFit } from './fit.js';
+import { mountComparison } from './compare.js';
+import { comparisonPrice } from './project-offers.js';
+import { renderProjectGuide } from './project-guide.js';
+import { mountFeaturedProject } from './featured-project.js';
 
 import { mountCatalog } from './catalog.js';
 import { mountMotion } from './motion.js';
@@ -11,6 +15,8 @@ import { getPreviewDraft, loadPublicSite } from './site-data.js';
 const pageParameters = new URLSearchParams(location.search);
 const seasonalPreview = pageParameters.get('season');
 const requestedProject = pageParameters.get('project');
+const requestedItem = pageParameters.get('item');
+const requestedCategory = pageParameters.get('category');
 mountMotion();
 applySeason(document.documentElement.dataset.kwSeason);
 
@@ -65,29 +71,6 @@ matchMedia('(min-width:721px)').addEventListener('change', event => {
   if (event.matches) setMenu(false);
 });
 
-const model = document.querySelector('#model');
-const tabs = [...document.querySelectorAll('[data-view]')];
-let viewer;
-let viewerTask;
-let desiredView = 'outside';
-let width = 140;
-let insideWidth = 220;
-const orbit = document.querySelector('[data-auto]');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let autoActive = false;
-function updateOrbit() {
-  orbit.disabled = desiredView === 'plan' || reducedMotion.matches;
-  orbit.setAttribute('aria-pressed', String(autoActive));
-  orbit.setAttribute('aria-label', autoActive ? 'Остановить вращение' : 'Включить автоматическое вращение');
-}
-model.addEventListener('viewer:autorotate', event => { autoActive = event.detail.active; updateOrbit(); });
-reducedMotion.addEventListener('change', updateOrbit);
-updateOrbit();
-orbit.addEventListener('click', async () => {
-  const current = viewer || await loadModel();
-  if (current) autoActive = current.setAutoRotate(!autoActive);
-  updateOrbit();
-});
 async function preparePage() {
   const draft = getPreviewDraft();
   const snapshot = draft || await loadPublicSite();
@@ -111,38 +94,88 @@ async function preparePage() {
     cabinetLink.href = target.href;
   }
   const showContact = mountContact(settings);
-  const published = items.filter(item => item.published !== false);
+  const published = items.filter(item => item?.published !== false && item?.visible !== false && item?.id);
   const askAbout = (item, trigger) => showContact(trigger, item);
-  mountCatalog(document.querySelector('#product-catalog'), published, {
-    onContact: askAbout,
-    onTour: openProjectTour
+  const insideWidth = Number(settings.insideWidth) || 220;
+  const barnCase = document.querySelector('#barn-case');
+  const barn = published.find(item => item.id === 'barn-2-4-5' && getTourId(item) === 'barn-2-4-5');
+  const featured = mountFeaturedProject(document.querySelector('#viewer'), published, {
+    insideWidth, bedWidth:140, onContact:askAbout,
+    onFeatureChanged(item) {
+      document.querySelector('[data-viewer-nav]').hidden = !item;
+      barnCase.hidden = !barn || item?.id !== barn.id;
+      if (barnCase.hidden) barnCase.open = false;
+    }
   });
-  const hasBarn = items.some(item => getTourId(item) === 'barn-2-4-5' && item.published !== false);
-  document.querySelectorAll('[data-barn]').forEach(node => { node.hidden = !hasBarn; });
-  insideWidth = Number(settings.insideWidth) || 220;
-  viewer?.setInsideWidth(insideWidth);
+  function openTour(item, trigger) {
+    if (getTourId(item) === 'barn-2-4-5') {
+      featured.selectProject(item.id);
+      document.querySelector('#viewer').scrollIntoView({behavior:'instant'});
+    } else {
+      openProjectTour(item, trigger, askAbout);
+    }
+  }
+  let catalogReady = false;
+  const catalog = mountCatalog(document.querySelector('#product-catalog'), published, {
+    onContact:askAbout, onTour:openTour,
+    onCategoryChange(category) {
+      featured.chooseCategory(category);
+      if (!catalogReady) return;
+      const address = new URL(location.href);
+      if (category === 'all') address.searchParams.delete('category');
+      else address.searchParams.set('category', category);
+      address.searchParams.delete('project');
+      address.searchParams.delete('item');
+      history.replaceState(history.state, '', address);
+    },
+    onCompare:(item, trigger) => comparison.toggle(item, trigger)
+  });
+  if (requestedCategory) catalog.setFilter(requestedCategory);
+  catalogReady = true;
+  const comparison = mountComparison(document.querySelector('#comparison'), {
+    items:published, formatPrice:comparisonPrice,
+    onOpen:(item, trigger) => catalog.openItem(item, trigger), onContact:askAbout
+  });
+  comparison.subscribe(ids => catalog.setCompared(ids));
+  renderProjectGuide(document.querySelector('#project-guide'), published, {
+    onDetails(item, trigger, mode) {
+      if (mode === 'tour') openTour(item, trigger);
+      else catalog.openItem(item, trigger);
+    },
+    onContact:askAbout,
+    onCategory(category) {
+      if (!catalog.setFilter(category)) return;
+      location.hash = 'catalog';
+      document.querySelector('#catalog').scrollIntoView({behavior:'instant'});
+      document.querySelector('#catalog-heading').focus({preventScroll:true});
+    }
+  });
   let initialized = false;
   mountFit(document.querySelector('#fit-calculator'), {insideWidth, onChange({bedWidth}) {
-    width = bedWidth;
-    if (initialized) document.documentElement.dataset.selectedBedWidth = String(width);
-    viewer?.setBedWidth(width);
+    if (initialized) document.documentElement.dataset.selectedBedWidth = String(bedWidth);
+    featured.setBedWidth(bedWidth);
   }});
   initialized = true;
-  const selectTour = document.querySelector('#tour-picker');
-  const otherTours = published.filter(item => getTourId(item) && getTourId(item) !== 'barn-2-4-5');
-  selectTour.closest('.tour-picker-row').hidden = otherTours.length === 0;
-  for (const item of otherTours) selectTour.add(new Option(item.name, item.id));
-  selectTour.addEventListener('change', () => {
-    const chosen = otherTours.find(item => item.id === selectTour.value);
-    selectTour.value = '';
-    if (chosen) openProjectTour(chosen,selectTour,askAbout);
-  });
+  function revealBarnSection() {
+    if (!barn || !['#fit','#gallery','#about'].includes(location.hash)) return;
+    featured.selectProject(barn.id);
+    barnCase.open = true;
+    document.querySelector(location.hash).scrollIntoView({behavior:'instant'});
+  }
+  window.addEventListener('hashchange', revealBarnSection);
+  revealBarnSection();
+  if (requestedItem && published.some(item => item.id === requestedItem)) {
+    const heading = document.querySelector('#catalog-heading');
+    document.querySelector('#catalog').scrollIntoView({behavior:'instant'});
+    catalog.openItem(requestedItem, heading);
+    return;
+  }
   if (requestedProject) {
     const item = published.find(project => project.id === requestedProject);
     const matchedTour = getTourId(item);
     if (matchedTour) {
       if (matchedTour === 'barn-2-4-5') {
-        document.querySelector('#viewer').scrollIntoView({behavior:'instant'});
+        openTour(item, document.querySelector('#catalog-heading'));
       } else {
         const heading = document.querySelector('#catalog-heading');
         document.querySelector('#catalog').scrollIntoView({behavior:'instant'});
@@ -150,57 +183,19 @@ async function preparePage() {
       }
       return;
     }
+    if (item) {
+      catalog.openItem(item, document.querySelector('#catalog-heading'));
+      return;
+    }
   }
   // A direct link to the tour can arrive while the catalogue above it is loading.
-  const target = ['#viewer', '#fit', '#gallery', '#about', '#visit'].includes(location.hash) && document.querySelector(location.hash);
+  const target = ['#catalog', '#project-guide', '#viewer', '#fit', '#gallery', '#about', '#visit'].includes(location.hash) && document.querySelector(location.hash);
   if (target && !target.hidden && window.scrollY < target.offsetTop + 15) target.scrollIntoView({behavior:'instant'});
 }
 preparePage().catch(() => {
   const area = document.querySelector('#product-catalog');
   area.innerHTML = '<p>Каталог временно не загрузился. <a href="https://t.me/karkaswoodstroy">Посмотреть работы в Telegram</a></p>';
   mountContact();
-});
-
-function loadModel() {
-  if (!viewerTask) {
-    viewerTask = import('./viewer.js').then(({mountViewer}) => {
-      model.replaceChildren();
-      viewer = mountViewer(model);
-      viewer.setInsideWidth(insideWidth);
-      viewer.setBedWidth(width);
-      viewer.setView(desiredView);
-      return viewer;
-    }).catch(() => {
-      model.innerHTML = '<p class="model-loading">Модель не загрузилась. <a href="#gallery">Посмотреть фотографии</a></p>';
-      viewerTask = undefined;
-    });
-  }
-  return viewerTask;
-}
-if (typeof IntersectionObserver === 'function') {
-  const observer = new IntersectionObserver(entries => {
-    if (entries.some(entry => entry.isIntersecting)) {
-      loadModel();
-      observer.disconnect();
-    }
-  }, {rootMargin:'260px'});
-  observer.observe(model);
-} else loadModel();
-
-tabs.forEach(button => button.addEventListener('click', () => {
-  desiredView = button.dataset.view;
-  updateOrbit();
-  tabs.forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
-  if (viewer) viewer.setView(desiredView);
-  else loadModel();
-}));
-document.querySelectorAll('[data-turn]').forEach(button => button.addEventListener('click', async () => {
-  const currentViewer = viewer || await loadModel();
-  currentViewer?.rotate(Number(button.dataset.turn) * 0.35);
-}));
-document.querySelector('[data-reset]').addEventListener('click', async () => {
-  const currentViewer = viewer || await loadModel();
-  currentViewer?.reset();
 });
 
 const gallery = document.querySelector('.photo-strip');
@@ -220,6 +215,7 @@ previous.addEventListener('click', () => scrollPhotos(-1));
 next.addEventListener('click', () => scrollPhotos(1));
 gallery.addEventListener('scroll', updateGallery, {passive:true});
 window.addEventListener('resize', updateGallery);
+document.querySelector('#barn-case').addEventListener('toggle', () => requestAnimationFrame(updateGallery));
 updateGallery();
 
 const lightbox = document.querySelector('.lightbox');

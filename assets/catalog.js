@@ -1,4 +1,6 @@
 import { getTourId } from './tour-registry.js';
+import { getOffer } from './project-offers.js';
+import { getProjectPhotos } from './workshop-photos.js';
 
 const categories = [
   ['all', 'Все'],
@@ -28,6 +30,8 @@ function icon(name) {
     close:'m5 5 10 10M15 5 5 15',
     cube:'m10 2 7 4v8l-7 4-7-4V6l7-4Zm-7 4 7 4 7-4m-7 4v8',
     out:'M5 15 15 5M6 5h9v9',
+    compare:'M3 16V9h3v7H3Zm6 0V4h3v12H9Zm6 0V7h3v9h-3Z',
+    link:'m7 13 6-6M8 6l2-2a4 4 0 0 1 6 6l-2 2m-2 2-2 2a4 4 0 0 1-6-6l2-2',
     house:'M2 9 10 3l8 6m-2-1v9H4V8m4 9v-6h4v6',
   };
   const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -81,11 +85,64 @@ function image(src,name) {
   return img;
 }
 
-export function mountCatalog(container, items, {onContact, onTour} = {}) {
+function projectGallery(item, cover) {
+  const photos = [];
+  if (cover) photos.push({src:cover, alt:item.photoAlt || [item.name,item.dimensions].filter(Boolean).join(', ')});
+  for (const candidate of getProjectPhotos(item)) {
+    const src = photoURL(candidate.src);
+    if (src && candidate.alt && !photos.some(photo => photo.src === src)) photos.push({src,alt:candidate.alt});
+  }
+  if (!photos.length) return null;
+  const gallery = element('div','kc-gallery');
+  const img = image(photos[0].src,photos[0].alt);
+  img.loading = 'eager';
+  gallery.append(img);
+  if (photos.length === 1) return gallery;
+
+  gallery.tabIndex = 0;
+  gallery.setAttribute('role','group');
+  gallery.setAttribute('aria-label','Фотографии проекта «'+item.name+'»');
+  const bar = element('div','kc-gallery-bar');
+  const caption = element('span','kc-gallery-caption');
+  caption.setAttribute('aria-hidden','true');
+  const count = element('span','kc-gallery-count');
+  count.setAttribute('role','status');
+  count.setAttribute('aria-atomic','true');
+  let index = 0;
+  function show(step) {
+    index = (index+step+photos.length)%photos.length;
+    const photo = photos[index];
+    img.alt = photo.alt;
+    if (img.src !== photo.src) img.src = photo.src;
+    caption.textContent = index === 0 && cover && !item.photoAlt ? '' : photo.alt;
+    count.textContent = (index+1)+' из '+photos.length;
+  }
+  function arrow(label, step) {
+    const button = element('button','kc-gallery-arrow');
+    button.type = 'button';
+    button.setAttribute('aria-label',label);
+    button.append(icon('next'));
+    if (step < 0) button.classList.add('kc-gallery-prev');
+    button.addEventListener('click',()=>show(step));
+    return button;
+  }
+  bar.append(caption,arrow('Предыдущее фото',-1),count,arrow('Следующее фото',1));
+  gallery.append(bar);
+  gallery.addEventListener('keydown',event => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    show(event.key === 'ArrowLeft' ? -1 : 1);
+  });
+  show(0);
+  return gallery;
+}
+
+export function mountCatalog(container, items, {onContact, onTour, onCompare, onCategoryChange} = {}) {
+  let compared = new Set();
   const key = 'kc-'+(++instance);
   const entries = (Array.isArray(items) ? items : []).filter(item =>
     item && item.published !== false && item.visible !== false && typeof item.name === 'string' && item.name.trim() && categoryNames.has(item.category)
-  ).map(item => ({item, photo:photoURL(item.photo)}));
+  ).map(item => ({item, photo:photoURL(item.photo), offer:getOffer(item)}));
   const root = element('div','kc-root');
   const filters = element('div','kc-filters');
   filters.setAttribute('role','tablist');
@@ -107,10 +164,10 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
   root.append(dialog);
   container.replaceChildren(root);
 
-  function contactButton(item, label, origin) {
+  function contactButton(item, label, origin, intent = 'project') {
     const button = element('button','kc-contact',label);
     button.type = 'button';
-    button.append(icon('next'));
+    button.dataset.inquiry = intent;
     if (typeof onContact !== 'function') {
       button.dataset.contact = '';
       button.dataset.model = item.name;
@@ -118,37 +175,143 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
     }
     button.addEventListener('click',() => {
       if (dialog.open) dialog.close();
-      if (typeof onContact === 'function') onContact(item,origin || button);
+      if (typeof onContact === 'function') onContact(item,origin || button,intent);
     });
     return button;
   }
 
+  function sourceLink(label, href) {
+    const url = sourceURL(href);
+    if (!url) return null;
+    const link = element('a','kc-source',label);
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.append(icon('out'));
+    return link;
+  }
+
+  function projectLinks(item) {
+    const links = element('div','kc-detail-links');
+    const source = sourceLink('Публикация мастерской',item.source);
+    if (source) links.append(source);
+    const url = new URL(location.href);
+    if (!item.id || !['http:','https:'].includes(url.protocol) || url.searchParams.get('preview') === 'draft') return links;
+    const season = url.searchParams.get('season');
+    url.hash = '';
+    url.search = '';
+    url.searchParams.set('item',item.id);
+    if (season === 'classic' || season === 'newyear') url.searchParams.set('season',season);
+    const copy = element('button','kc-share','Скопировать ссылку на проект');
+    copy.type = 'button';
+    copy.prepend(icon('link'));
+    const status = element('span','kc-share-status');
+    status.setAttribute('role','status');
+    const field = element('input','kc-share-field');
+    field.type = 'url';
+    field.readOnly = true;
+    field.hidden = true;
+    field.setAttribute('aria-label','Ссылка на проект');
+    field.value = url.href;
+    copy.addEventListener('click',async()=>{
+      try {
+        await navigator.clipboard.writeText(url.href);
+        field.hidden = true;
+        status.textContent = 'Ссылка скопирована';
+      } catch {
+        if (!copy.isConnected || !dialog.open) return;
+        field.hidden = false;
+        field.focus();
+        field.select();
+        status.textContent = 'Скопируйте выделенную ссылку';
+      }
+    });
+    links.append(copy,field,status);
+    return links;
+  }
+
+  function compareButton(item) {
+    const button = element('button','kc-compare');
+    button.type = 'button';
+    button.dataset.compareId = item.id;
+    button.append(icon('compare'),element('span'));
+    button.addEventListener('click',()=>onCompare(item,button));
+    showCompared(button);
+    return button;
+  }
+
+  function showCompared(button) {
+    const active = compared.has(button.dataset.compareId);
+    button.setAttribute('aria-pressed',String(active));
+    button.querySelector('span').textContent = active ? 'В сравнении' : 'Сравнить';
+  }
+
+  function prices(offer, detailed = false, projectSource) {
+    const price = priceLabel(offer.currentPrice);
+    const historical = offer.reference;
+    const oldPrice = priceLabel(historical?.price);
+    const date = dateLabel(historical?.date);
+    const node = element('div','kc-offer-price');
+    if (price) {
+      node.append(element('span','kc-price-type','Цена мастерской'),element('strong','kc-price',price));
+    } else if (!oldPrice || !date) {
+      node.append(element('span','kc-price-request','Цена по запросу'));
+    }
+    if (offer.currentNote) {
+      const note = element('p','kc-owner-note');
+      if (!price) note.append(element('span','','Условия мастерской'));
+      note.append(document.createTextNode(offer.currentNote));
+      node.append(note);
+    }
+    if (oldPrice && date && (detailed || !price)) {
+      const archive = element('div','kc-reference');
+      archive.append(element('span','kc-reference-label','Цена в публикации от '+date),element('span','kc-reference-amount',oldPrice));
+      if (detailed && historical.description) archive.append(element('p','kc-reference-note',historical.description));
+      if (detailed && historical.source !== projectSource) {
+        const link = sourceLink('Источник цены',historical.source);
+        if (link) archive.append(link);
+      }
+      node.append(archive);
+    }
+    return node;
+  }
+
+  function featureList(title, values) {
+    if (!Array.isArray(values) || !values.length) return null;
+    const group = element('section','kc-feature-group');
+    const list = element('ul');
+    values.forEach(value=>list.append(element('li','',value)));
+    group.append(element('h4','',title),list);
+    return group;
+  }
+
   function details(entry, origin) {
-    const {item,photo} = entry;
+    const {item,photo,offer} = entry;
     const content = element('div','kc-detail');
-    if (photo) content.append(image(photo,item.name));
+    const gallery = projectGallery(item,photo);
+    if (gallery) content.append(gallery);
     const description = element('div','kc-description');
     const heading = element('h3','kc-detail-title',item.name);
     heading.id = key+'-title';
     description.append(element('p','kc-kind',categoryNames.get(item.category)),heading);
     if (item.summary) description.append(element('p','kc-summary',item.summary));
     const facts = element('dl','kc-facts');
-    for (const [label,value] of [['Габариты',item.dimensions],['Цена',priceLabel(item.price)],['Дата публикации',dateLabel(item.published)]]) {
-      if (value) facts.append(element('dt','',label),element('dd','',value));
-    }
+    if (item.dimensions) facts.append(element('dt','','Габариты'),element('dd','',item.dimensions));
     if (facts.childElementCount) description.append(facts);
-    const source = sourceURL(item.source);
-    if (source) {
-      const link = element('a','kc-source','Публикация мастерской');
-      link.href = source;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.append(icon('out'));
-      description.append(link);
-    }
+    description.append(prices(offer,true,item.source));
+    const specs = element('div','kc-detail-lists');
+    const included = featureList('В показанном проекте',offer.included);
+    const clarify = featureList('Уточнить при заказе',offer.clarify);
+    if (included) specs.append(included);
+    if (clarify) specs.append(clarify);
+    if (specs.childElementCount) description.append(specs);
+    const links = projectLinks(item);
+    if (links.childElementCount) description.append(links);
     const actions = element('div','kc-actions');
-    actions.append(contactButton(item,'Обсудить модель',origin));
+    const askPrice = !priceLabel(offer.currentPrice);
+    actions.append(contactButton(item,askPrice?'Запросить цену':'Обсудить модель',origin,askPrice?'price':'project'));
     if (getTourId(item)) actions.append(tourLink(item, origin));
+    if (typeof onCompare === 'function') actions.append(compareButton(item));
     description.append(actions);
     const close = element('button','kc-close');
     close.type = 'button';
@@ -158,7 +321,9 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
     close.addEventListener('click',()=>dialog.close());
     content.append(description,close);
     dialog.replaceChildren(content);
-    dialog.showModal();
+    if (!dialog.open) dialog.showModal();
+    dialog.scrollTop = 0;
+    return true;
   }
 
   function tourLink(item, opener) {
@@ -173,13 +338,13 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
     link.prepend(icon('cube'));
     link.addEventListener('click', () => {
       if (dialog.open) dialog.close();
-      if (!embedded) onTour?.(item, opener || link, onContact);
+      onTour?.(item, opener || link, onContact);
     });
     return link;
   }
 
   function card(entry) {
-    const {item,photo} = entry;
+    const {item,photo,offer} = entry;
     const article = element('article','kc-card');
     const opener = element('button','kc-card-open');
     opener.type = 'button';
@@ -198,14 +363,27 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
     const name = element('span','kc-name',item.name);
     const info = element('span','kc-card-info');
     info.append(notes,name);
-    const price = priceLabel(item.price);
-    if (price) info.append(element('span','kc-price',price));
     const arrow = element('span','kc-open-arrow');
     arrow.append(icon('next'));
     info.append(arrow);
     opener.append(visual,info);
     article.append(opener);
     if (getTourId(item)) article.append(tourLink(item));
+    const terms = element('div','kc-card-terms');
+    terms.append(prices(offer));
+    const known = offer.included?.[0];
+    if (known) terms.append(element('p','kc-card-feature',known));
+    const condition = offer.clarify?.[0];
+    if (condition) {
+      const line = element('p','kc-card-condition');
+      line.append(element('span','','Уточнить при заказе'),document.createTextNode(condition));
+      terms.append(line);
+    }
+    const actionRow = element('div','kc-card-actions');
+    const askPrice = !priceLabel(offer.currentPrice);
+    actionRow.append(contactButton(item,askPrice?'Запросить цену':'Обсудить модель',null,askPrice?'price':'project'));
+    if (typeof onCompare === 'function') actionRow.append(compareButton(item));
+    article.append(terms,actionRow);
     return article;
   }
 
@@ -258,6 +436,7 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
   function select(category) {
     if (category !== 'all' && !categoryNames.has(category)) return false;
     if (selected === category) return true;
+    const notify = selected !== undefined;
     selected = category;
     expanded = false;
     categories.forEach(([id],i) => {
@@ -267,6 +446,7 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
       if (active) panel.setAttribute('aria-labelledby',tabs[i].id);
     });
     renderCards();
+    if (notify) onCategoryChange?.(category);
     return true;
   }
   filters.addEventListener('keydown',event => {
@@ -283,5 +463,17 @@ export function mountCatalog(container, items, {onContact, onTour} = {}) {
     if (event.clientX < r.left || event.clientY < r.top || event.clientX > r.right || event.clientY > r.bottom) dialog.close();
   });
   select('all');
-  return {setFilter:select, destroy() { if (dialog.open) dialog.close(); root.remove(); }};
+  return {
+    setFilter:select,
+    setCompared(ids) {
+      compared = new Set(ids);
+      root.querySelectorAll('[data-compare-id]').forEach(showCompared);
+    },
+    openItem(itemOrId,trigger) {
+      const id = typeof itemOrId === 'string' ? itemOrId : itemOrId?.id;
+      const entry = entries.find(record => record.item.id === id);
+      return entry ? details(entry,trigger) : false;
+    },
+    destroy() { if (dialog.open) dialog.close(); root.remove(); }
+  };
 }

@@ -47,16 +47,31 @@
 .kc-dialog::backdrop {background:#111e16c4}
 body:has(.kc-dialog[open]) {overflow:hidden}
 .kc-detail {position:relative}
-.kc-detail>img {display:block;width:100%;height:clamp(160px,36vh,330px);object-fit:contain;background:#e6e8de}
+.kc-gallery>img {display:block;width:100%;height:clamp(160px,36vh,330px);object-fit:contain;background:#e6e8de}
+.kc-gallery:focus-visible {outline:3px solid var(--kc-copper);outline-offset:-3px}
+.kc-gallery-bar {display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:5px;align-items:center;padding:4px 12px 4px 18px;border-block:1px solid #d2d7ca}
+.kc-gallery-caption {padding-right:8px;color:var(--kc-muted);font-size:.82rem;line-height:1.35;overflow-wrap:anywhere}
+.kc-gallery-arrow {display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid transparent;border-radius:50%;background:transparent;color:var(--kc-ink);cursor:pointer}
+.kc-gallery-arrow:hover {background:#e7ecdf}
+.kc-gallery-prev .kc-icon {transform:rotate(180deg)}
+.kc-gallery-count {min-width:42px;color:var(--kc-ink);text-align:center;white-space:nowrap;font-size:.83rem;font-variant-numeric:tabular-nums}
 .kc-description {padding:clamp(23px,4.5vw,40px)}
 .kc-detail-title {margin:6px 0 10px;font:600 clamp(2.15rem,4.5vw,3.6rem)/1 var(--kc-serif);letter-spacing:-.04em;overflow-wrap:anywhere}
-.kc-detail:not(:has(>img)) .kc-description {padding-right:60px}
+.kc-detail:not(:has(>.kc-gallery)) .kc-description {padding-right:60px}
 .kc-summary {max-width:64ch;margin:0;color:var(--kc-muted);font-size:.96rem;line-height:1.55;white-space:pre-line}
 .kc-facts {display:grid;grid-template-columns:minmax(100px,auto) 1fr;gap:7px 20px;max-width:580px;margin:20px 0 0;padding-top:15px;border-top:1px solid #d2d7ca;color:var(--kc-ink);font-size:.89rem}
 .kc-facts dt {color:var(--kc-muted)}
 .kc-facts dd {margin:0;overflow-wrap:anywhere}
 .kc-source {margin-top:14px}
 .kc-source:hover,.kc-tour:hover {color:var(--kc-copper)}
+.kc-detail-links {display:flex;flex-wrap:wrap;align-items:center;gap:2px 18px;margin-top:12px}
+.kc-detail-links .kc-source,.kc-share {margin:0;min-height:44px}
+.kc-share {display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:transparent;color:var(--kc-forest);font:inherit;font-size:.85rem;font-weight:560;text-align:left;cursor:pointer}
+.kc-share .kc-icon {width:15px;height:15px}
+.kc-share:hover {color:var(--kc-copper);text-decoration:underline;text-underline-offset:4px}
+.kc-share-status,.kc-share-field {flex-basis:100%;min-width:0;color:var(--kc-muted);font:inherit;font-size:.84rem}
+.kc-share-status:empty {display:none}
+.kc-share-field {width:100%;padding:9px 10px;border:1px solid #9eac9b;border-radius:4px;background:#fff;color:var(--kc-ink)}
 .kc-actions {display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;margin-top:23px}
 .kc-close {position:absolute;top:12px;right:12px;display:grid;place-items:center;width:42px;height:42px;padding:0;border:1px solid #c9cfc2;border-radius:50%;background:var(--kc-paper);color:var(--kc-ink);cursor:pointer}
 .kc-close:hover {background:#e7ecdf}
@@ -73,10 +88,46 @@ body:has(.kc-dialog[open]) {overflow:hidden}
   .kc-visual {aspect-ratio:1.57}
   .kc-name {font-size:2.2rem}
   .kc-empty {align-items:start;flex-direction:column}
-  .kc-detail>img {height:clamp(165px,31vh,245px)}
+  .kc-gallery>img {height:clamp(125px,29vh,225px)}
+  .kc-gallery-bar {padding:2px 6px 2px 12px;gap:2px}
   .kc-actions {gap:14px}
 }
 @media (prefers-reduced-motion:reduce) {
   .kc-card,.kc-empty {animation:none}
   .kc-tab,.kc-visual>img,.kc-open-arrow {transition:none}
 }
+
+.kc-grid {align-items:stretch}
+.kc-card {display:flex;flex-direction:column}
+.kc-card-open {flex:none}
+.kc-card-terms {margin:12px 0 18px;display:grid;gap:8px;min-width:0}
+.kc-offer-price {display:grid;align-content:start;gap:5px}
+.kc-offer-price .kc-price {margin:0;color:var(--kc-ink);font-weight:650;font-size:clamp(1.17rem,1.4vw,1.45rem)}
+.kc-price-type,.kc-reference-label {font-size:.8rem;color:var(--kc-muted);line-height:1.4}
+.kc-reference {display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.kc-reference-amount {font-size:clamp(1.17rem,1.4vw,1.45rem);line-height:1.35;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.kc-price-request {font-size:1rem;font-weight:580}
+.kc-card-feature {margin:2px 0 0;color:var(--kc-ink);font-size:.91rem;line-height:1.5}
+.kc-card-condition {margin:0;color:var(--kc-muted);font-size:.83rem;line-height:1.45}
+.kc-card-condition>span {display:block;font-weight:600}
+.kc-card-actions {margin-top:auto;padding:12px 0 2px;border-top:1px solid #d7d9cf;display:flex;gap:5px 12px;align-items:center;flex-wrap:wrap}
+.kc-card-actions .kc-contact {min-height:40px;padding:8px 12px;font-size:.85rem}
+.kc-compare {display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:7px 8px;border:1px solid transparent;background:transparent;border-radius:4px;color:var(--kc-forest);font:inherit;font-size:.84rem;font-weight:550;line-height:1.35;cursor:pointer}
+.kc-compare .kc-icon {width:15px;height:15px}
+.kc-compare:hover {background:#e9ede3}
+.kc-compare[aria-pressed=true] {border-color:#9eae95;background:#e8efe2;color:#2f492f}
+.kc-description>.kc-offer-price {margin-top:16px}
+.kc-description .kc-reference-note {margin:7px 0 0;font-size:.86rem;line-height:1.45;color:var(--kc-muted)}
+.kc-description .kc-reference>.kc-source {margin-top:7px}
+.kc-description .kc-detail-lists {display:grid;grid-template-columns:1fr 1fr;gap:14px 25px;margin:22px 0 4px;padding-top:17px;border-top:1px solid #d2d7ca}
+.kc-detail-lists:empty {display:none}
+.kc-feature-group h4 {margin:0 0 7px;font-size:.96rem;font-weight:650;color:var(--kc-ink)}
+.kc-feature-group ul {margin:0;padding-left:17px;color:var(--kc-muted);font-size:.91rem;line-height:1.55}
+.kc-feature-group li+li {margin-top:4px}
+@media(max-width:590px) {
+  .kc-card-actions .kc-contact,.kc-compare {min-height:44px}
+  .kc-card-terms {margin:10px 0 14px}
+  .kc-description .kc-detail-lists {grid-template-columns:1fr}
+}
+.kc-owner-note {margin:0;font-size:.87rem;line-height:1.48;color:var(--kc-muted);white-space:pre-line;overflow-wrap:anywhere}
+.kc-owner-note>span {display:block;font-weight:600}
