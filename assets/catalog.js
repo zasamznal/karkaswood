@@ -1,6 +1,7 @@
 import { getTourId } from './tour-registry.js';
 import { getOffer } from './project-offers.js';
 import { getProjectPhotos } from './workshop-photos.js';
+import { getProjectCover } from './project-covers.js';
 
 const categories = [
   ['all', 'Все'],
@@ -15,6 +16,15 @@ const previewSize = 3;
 const projectEndings = {one:'проект',few:'проекта',many:'проектов',other:'проекта'};
 const russianPlural = new Intl.PluralRules('ru');
 const houseRequest = Object.freeze({id:'house-project', category:'house', name:'Индивидуальный проект дома'});
+const originalFraming = new Map(Object.entries({
+  './photos/front.webp':'contain',
+  './catalog-photos/workshop-3-4.webp':'contain',
+  './catalog-photos/barn-maxi.webp':'50% 15%',
+  './catalog-photos/barn-compact.webp':'50% 58%',
+  './catalog-photos/loft-woodstore.webp':'50% 38%',
+  './catalog-photos/provence-garden.webp':'50% 43%',
+  './catalog-photos/loft-garden.webp':'50% 51%',
+}).map(([path,frame])=>[new URL(path,import.meta.url).href,frame]));
 let instance = 0;
 
 function element(tag, className, value) {
@@ -83,6 +93,32 @@ function image(src,name) {
   img.alt = name;
   img.src = src;
   return img;
+}
+
+function cardVisual(item,original) {
+  const visual = element('span','kc-visual');
+  const cover = getProjectCover(item);
+  const custom = photoURL(cover?.src);
+  if (!custom && !original) {
+    visual.append(icon('house'));
+    return visual;
+  }
+  const originalAlt = item.photoAlt || item.name;
+  const img = image(custom || original,custom ? cover.alt : originalAlt);
+  function frame(position) {
+    img.classList.toggle('kc-full-photo',position === 'contain');
+    img.style.objectPosition = position && position !== 'contain' ? position : '';
+  }
+  frame(custom ? cover.position : originalFraming.get(original));
+  img.addEventListener('error',()=>{
+    if (custom && original && img.src !== original) {
+      frame(originalFraming.get(original));
+      img.alt = originalAlt;
+      img.src = original;
+    } else visual.replaceChildren(icon('house'));
+  });
+  visual.append(img);
+  return visual;
 }
 
 function projectGallery(item, cover) {
@@ -351,12 +387,7 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
     opener.setAttribute('aria-label','Подробнее о модели «'+item.name+'»');
     opener.setAttribute('aria-haspopup','dialog');
     opener.addEventListener('click',()=>details(entry,opener));
-    const visual = element('span','kc-visual');
-    if (photo) {
-      const img = image(photo,'');
-      visual.append(img);
-      img.addEventListener('error',()=>{ visual.replaceChildren(icon('house')); },{once:true});
-    } else visual.append(icon('house'));
+    const visual = cardVisual(item,photo);
     const notes = element('span','kc-meta');
     notes.append(element('span','kc-kind',categoryNames.get(item.category)));
     if (item.dimensions) notes.append(element('span','kc-size',item.dimensions));
@@ -368,9 +399,11 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
     info.append(arrow);
     opener.append(visual,info);
     article.append(opener);
-    if (getTourId(item)) article.append(tourLink(item));
     const terms = element('div','kc-card-terms');
-    terms.append(prices(offer));
+    const priceRow = element('div','kc-card-offer');
+    priceRow.append(prices(offer));
+    if (getTourId(item)) priceRow.append(tourLink(item));
+    terms.append(priceRow);
     const known = offer.included?.[0];
     if (known) terms.append(element('p','kc-card-feature',known));
     const condition = offer.clarify?.[0];

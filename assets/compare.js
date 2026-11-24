@@ -1,4 +1,5 @@
 import { comparisonPrice, getOffer } from './project-offers.js';
+import { getProjectCover } from './project-covers.js';
 
 const MAX_SELECTED = 3;
 const categories = new Map([['bath','Баня'],['utility','Хозблок'],['cabin','Бытовка'],['house','Дом']]);
@@ -143,8 +144,13 @@ export function mountComparison(container, { items=[], formatPrice=comparisonPri
     const controls=node('div','kwcmp-thumb-row');
     if(photo) {
       const view=button('kwcmp-thumb','','Открыть фото — '+item.name);
-      const pic=image(photo);
-      pic.addEventListener('error',()=>{view.hidden=true;},{once:true});
+      const cover=getProjectCover(item);
+      const pic=image(cover?.src || photo);
+      if (cover) pic.style.objectPosition=cover.position;
+      pic.addEventListener('error',()=>{
+        if(cover && pic.src===cover.src && cover.src!==photo) pic.src=photo;
+        else view.hidden=true;
+      });
       view.append(pic);view.addEventListener('click',()=>showPhoto(item,photo,view));controls.append(view);
     }
     const remove=button('kwcmp-remove','×','Убрать из сравнения — '+item.name);remove.dataset.kwcmpRemove=item.id;
@@ -215,7 +221,8 @@ export function mountComparison(container, { items=[], formatPrice=comparisonPri
     dock.hidden=!selected.length;
     dockPhotos.replaceChildren();
     for(const id of selected) {
-      const src=safeURL(byId.get(id).photo,true);
+      const item=byId.get(id);
+      const src=getProjectCover(item)?.src || safeURL(item.photo,true);
       if(src) {
         const pic=image(src);pic.addEventListener('error',()=>pic.remove(),{once:true});dockPhotos.append(pic);
       }

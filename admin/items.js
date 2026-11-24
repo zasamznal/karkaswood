@@ -1,5 +1,6 @@
 import { tourTemplates } from '../assets/tour-registry.js';
 import { getOffer } from '../assets/project-offers.js';
+import { getProjectCover } from '../assets/project-covers.js';
 
 const categories = new Map([
   ['utility', 'Хозблоки'],
@@ -62,19 +63,29 @@ function options(select, emptyLabel) {
   for (const [value, label] of categories) select.add(new Option(label, value));
 }
 
-function syncImage(box, value) {
+function syncImage(box, item) {
   box.replaceChildren();
-  const src = photoUrl(value);
-  if (!src) {
+  const cover = getProjectCover(item);
+  const original = photoUrl(item.photo);
+  if (!cover && !original) {
     box.textContent = 'Без фото';
     return;
   }
   const img = element('img');
-  img.alt = '';
+  img.alt = cover?.alt || item.photoAlt || item.name || '';
   img.loading = 'lazy';
+  img.decoding = 'async';
   img.referrerPolicy = 'no-referrer';
-  img.addEventListener('error', () => { if (box.contains(img)) box.textContent = 'Фото недоступно'; }, { once: true });
-  img.src = src;
+  if (cover) img.style.objectPosition = cover.position;
+  img.addEventListener('error', () => {
+    if (!box.contains(img)) return;
+    if (cover && original && img.src !== original) {
+      img.style.removeProperty('object-position');
+      img.alt = item.photoAlt || item.name || '';
+      img.src = original;
+    } else box.textContent = 'Фото недоступно';
+  });
+  img.src = cover?.src || original;
   box.append(img);
 }
 
@@ -312,12 +323,14 @@ export function mountItems(container, { items = [], onChange } = {}) {
       updateReference();
     }
     updateCardText();
-    let lastPhoto;
+    let lastPhoto, lastSource;
     function updatePreview() {
       clearTimeout(context.photoTimer);
-      if (lastPhoto !== context.photo) {
-        syncImage(preview, context.photo);
+      const source = fields.source.value.trim();
+      if (lastPhoto !== context.photo || lastSource !== source) {
+        syncImage(preview, {...original, photo: context.photo, source});
         lastPhoto = context.photo;
+        lastSource = source;
       }
       remove.disabled = !context.photo && !context.busy;
     }
@@ -337,7 +350,10 @@ export function mountItems(container, { items = [], onChange } = {}) {
     form.addEventListener('input', () => { context.dirty = true; updateCardText(); });
     fields.name.addEventListener('input', () => fields.name.setCustomValidity(''));
     fields.price.addEventListener('input', () => fields.price.setCustomValidity(''));
-    fields.source.addEventListener('input', () => fields.source.setCustomValidity(''));
+    fields.source.addEventListener('input', () => {
+      fields.source.setCustomValidity('');
+      updatePreview();
+    });
     fields.photo.addEventListener('input', () => {
       context.task++;
       setBusy(false);
@@ -442,7 +458,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
       const row = element('li', 'kwitems-row');
       row.dataset.record = item.id;
       const picture = element('div', 'kwitems-thumbnail');
-      syncImage(picture, item.photo);
+      syncImage(picture, item);
       const body = element('div', 'kwitems-row-body');
       const title = element('h4', '', item.name || 'Без названия');
       const info = element('div', 'kwitems-meta');

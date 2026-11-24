@@ -1,4 +1,5 @@
 import { getTourId } from './tour-registry.js';
+import { getProjectCover } from './project-covers.js';
 
 const uses = [
   {
@@ -99,7 +100,7 @@ export function renderProjectGuide(container, items, {onDetails, onContact, onCa
   panel.setAttribute('role', 'tabpanel');
   const entries = (Array.isArray(items) ? items : []).filter(item =>
     item && item.published !== false && item.visible !== false && typeof item.name === 'string' && item.name.trim()
-  ).map(item => ({item, photo: photoUrl(item.photo)}));
+  ).map(item => ({item, photo: photoUrl(item.photo), cover:getProjectCover(item)}));
   const groups = uses.map(use => entries.filter(entry => entry.item.category === use.category));
   const controls = [];
   let selected = -1;
@@ -130,22 +131,31 @@ export function renderProjectGuide(container, items, {onDetails, onContact, onCa
   }
 
   function showProject(use, entry, count) {
-    const {item, photo} = entry;
+    const {item, photo, cover} = entry;
     const stage = el('article', 'pg-project');
     if (photo) {
       const figure = el('div', 'pg-photo');
       const image = el('img');
-      image.alt = item.name;
+      image.alt = cover?.alt || item.name;
       image.loading = 'lazy';
       image.decoding = 'async';
-      image.addEventListener('error', () => { figure.remove(); stage.classList.add('pg-text-only'); }, {once:true});
-      image.src = photo;
+      image.addEventListener('error', () => {
+        if (cover && image.src === cover.src && cover.src !== photo) {
+          image.src = photo;
+          image.alt = item.name;
+        } else {
+          figure.remove();
+          stage.classList.add('pg-text-only');
+        }
+      });
+      if (cover) image.style.objectPosition = cover.position;
+      image.src = cover?.src || photo;
       figure.append(image);
       stage.append(figure);
     } else stage.classList.add('pg-text-only');
     const text = el('div', 'pg-project-copy');
     const meta = el('div', 'pg-meta');
-    meta.append(el('span', '', 'Пример из мастерской'));
+    meta.append(el('span', '', cover && !cover.isOriginal ? 'Визуализация по фото' : 'Проект мастерской'));
     if (item.dimensions) meta.append(el('span', 'pg-size', item.dimensions));
     const title = el('h3', 'pg-project-name', item.name);
     text.append(meta, title);

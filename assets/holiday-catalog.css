@@ -62,8 +62,7 @@ html[data-kw-season="newyear"] .workshop-catalog {
 }
 [data-kw-season="newyear"] .kc-visual {
   flex: none;
-  border: 5px solid #f6f7ee;
-  border-bottom-width: 4px;
+  border: 3px solid #f6f7ee;
   border-radius: 6px 6px 0 0;
   background: #dce6df;
 }
@@ -90,18 +89,12 @@ html[data-kw-season="newyear"] .workshop-catalog {
   border-color: #a0ac8f;
   color: #f2dba5;
 }
-[data-kw-season="newyear"] .kc-card > .kc-tour {
-  top: 15px;
-  left: 15px;
-  min-height: 37px;
-  border: 1px solid #d4bf8b;
-  border-radius: 3px;
-  background: #17382fee;
+[data-kw-season="newyear"] .kc-card-offer > .kc-tour {
+  border-color: #89967d;
+  background: #25463a;
   color: #fff5dc;
-  box-shadow: 0 2px 7px #071c1766;
-  letter-spacing: .005em;
 }
-[data-kw-season="newyear"] .kc-card > .kc-tour .kc-icon {color:#f0ce8c}
+[data-kw-season="newyear"] .kc-card-offer > .kc-tour .kc-icon {color:#f0ce8c}
 [data-kw-season="newyear"] .kc-more {
   min-height: 46px;
   margin-top: 30px;
@@ -165,7 +158,7 @@ html[data-kw-season="newyear"] .workshop-catalog {
   outline: 3px solid #916316;
   outline-offset: 3px;
 }
-[data-kw-season="newyear"] .kc-card > .kc-tour:focus-visible {
+[data-kw-season="newyear"] .kc-card-offer > .kc-tour:focus-visible {
   outline-color: #ffda89;
   box-shadow: 0 0 0 3px #163c30;
 }
@@ -199,7 +192,7 @@ html[data-kw-season="newyear"] .workshop-catalog {
   [data-kw-season="newyear"] .kc-card:hover {border-color:#a38c5c;box-shadow:0 7px 18px #133e3224}
   [data-kw-season="newyear"] .kc-card-open:hover .kc-open-arrow,
   [data-kw-season="newyear"] .kc-card-open:focus-visible .kc-open-arrow {background:#f0d69f;color:#17382d;border-color:#f0d69f}
-  [data-kw-season="newyear"] .kc-card > .kc-tour:hover {background:#0b2920;color:#fff7e3}
+  [data-kw-season="newyear"] .kc-card-offer > .kc-tour:hover {background:#375649;border-color:#d4bf8b;color:#fff7e3}
   [data-kw-season="newyear"] .kc-more:hover {background:#e4ece3;border-color:#7a8e80}
   [data-kw-season="newyear"] .kc-empty .kc-contact:hover {background:#ffe1a6}
   [data-kw-season="newyear"] .kc-actions .kc-contact:hover {background:#285345}
@@ -214,7 +207,6 @@ html[data-kw-season="newyear"] .workshop-catalog {
   [data-kw-season="newyear"] .kc-grid {row-gap:18px}
   [data-kw-season="newyear"] .kc-card-info {padding:15px 52px 19px 15px}
   [data-kw-season="newyear"] .kc-open-arrow {top:19px;right:13px}
-  [data-kw-season="newyear"] .kc-card > .kc-tour {top:12px;left:12px;min-height:41px}
   [data-kw-season="newyear"] .kc-facts {grid-template-columns:auto 1fr;gap:6px 14px;font-size:.94rem}
 }
 
