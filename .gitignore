@@ -5,3 +5,5 @@ dist/
 .env.*
 .dev.vars
 .dev.vars.*
+backend/wrangler.toml
+*.sqlite

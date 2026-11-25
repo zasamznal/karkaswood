@@ -1,0 +1,9 @@
+# Пример настроек Cloudflare Worker. Скопируйте файл в wrangler.toml (он не попадает в Git) и подставьте идентификатор базы.
+name = "karkaswood-api"
+main = "../dist/server/index.js"
+compatibility_date = "2026-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "karkaswood"
+database_id = "ПОДСТАВЬТЕ-ИДЕНТИФИКАТОР-БАЗЫ"
