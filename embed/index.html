@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <script src="../assets/season-start.js"></script>
+  <title>Объёмная модель постройки — Каркасвуд</title>
+  <link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../assets/fonts/fonts.css">
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/season.css">
+  <link rel="stylesheet" href="../assets/holiday-tours.css">
+  <link rel="stylesheet" href="../assets/featured-project.css">
+  <style>
+    /* Страница для вставки на другой сайт через iframe: только модель и её управление. */
+    html,body{height:100%;background:transparent}
+    body{display:flex;flex-direction:column}
+    #viewer{flex:1;display:flex;flex-direction:column;width:100%;margin:0;padding:10px;border:0}
+    #viewer .section-header,#viewer .fp-expand{display:none!important}
+    #viewer .viewer-card{flex:1;height:auto;min-height:280px}
+    #viewer.fp-ready .tour-picker-row{grid-template-columns:auto minmax(190px,360px);margin-bottom:10px}
+    #viewer[data-single] .tour-picker-row{display:none}
+    .embed-note{margin:0;padding:6px 12px 10px;color:var(--muted);font-size:.78rem;text-align:center}
+    .embed-note a{color:inherit}
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" class="symbols" aria-hidden="true"><defs>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Zm-9 5 9 5 9-5m-9 5v10m-4-17 9 5"/></symbol>
+    <symbol id="i-ruler" viewBox="0 0 24 24"><path d="m3 16 13-13 5 5L8 21zM7.5 11.5 10 14m1-6 2.5 2.5m1-6L17 7"/></symbol>
+    <symbol id="i-width" viewBox="0 0 24 24"><path d="M3 6v12M21 6v12M4 12h16M8 9l-3 3 3 3m8-6 3 3-3 3"/></symbol>
+    <symbol id="i-height" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M12 4v16m-3-12 3-3 3 3m-6 8 3 3 3-3"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m2.5 8 9.5-5 9.5 5-9.5 5-9.5-5Zm0 4.5 9.5 5 9.5-5m-19 4.4 9.5 5 9.5-5"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><path d="M4 13a9 5 0 1 0 2-5m-4 0 4 .3L5 4.7"/><path d="m12 8 3 2v4l-3 2-3-2v-4z"/></symbol>
+    <symbol id="i-plan" viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm10 0v5m0 3v6m0-5h4"/></symbol>
+    <symbol id="i-cut" viewBox="0 0 24 24"><path d="m3 17 9 4 9-4M3 17V8l9 4 9-4v9m-9-5v9M3 8l9-5 9 5"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 0 5m0-11v6h6"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m14.5 5.5-6 6.5 6 6.5"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9.5 5.5 6 6.5-6 6.5"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7-8 8M10 21H3v-7m0 7 8-8"/></symbol>
+  </defs></svg>
+  <section class="feature-viewer" id="viewer" aria-labelledby="viewer-title">
+    <div class="section-header"><div><h2 id="viewer-title">Объёмная модель</h2></div><p class="aside-text"></p></div>
+    <div class="metric-bar barn-metrics" aria-label="Размеры и утепление модуля"><dl class="metrics">
+      <div><svg class="icon"><use href="#i-ruler"/></svg><dt>Длина модуля</dt><dd>5 <small>м</small></dd></div>
+      <div><svg class="icon"><use href="#i-width"/></svg><dt>Ширина снаружи</dt><dd>2,4 <small>м</small></dd></div>
+      <div><svg class="icon"><use href="#i-height"/></svg><dt>Высота модуля</dt><dd>2,5 <small>м</small></dd></div>
+      <div><svg class="icon"><use href="#i-layers"/></svg><dt>Слой утепления</dt><dd>100 <small>мм</small></dd></div>
+    </dl></div>
+    <div class="viewer-card">
+      <div class="viewer-tabs" role="group" aria-label="Вид модели">
+        <button type="button" data-view="outside" aria-pressed="true"><svg class="icon"><use href="#i-cube"/></svg>Снаружи</button>
+        <button type="button" data-view="inside" aria-pressed="false"><svg class="icon"><use href="#i-cut"/></svg>Внутри</button>
+        <button type="button" data-view="plan" aria-pressed="false"><svg class="icon"><use href="#i-plan"/></svg>План сверху</button>
+      </div>
+      <div class="scene" id="model"><span class="model-loading">Загружаем модель…</span></div>
+      <div class="scene-tools" role="group" aria-label="Управление ракурсом">
+        <button type="button" class="icon-btn auto-orbit" data-auto aria-label="Включить автоматическое вращение" aria-pressed="false" title="Автовращение"><svg class="icon"><use href="#i-orbit"/></svg></button>
+        <button type="button" class="icon-btn" data-turn="-1" aria-label="Повернуть влево"><svg class="icon"><use href="#i-left"/></svg></button>
+        <button type="button" class="icon-btn" data-turn="1" aria-label="Повернуть вправо"><svg class="icon"><use href="#i-right"/></svg></button>
+        <button type="button" class="icon-btn" data-reset aria-label="Вернуть исходный ракурс"><svg class="icon"><use href="#i-reset"/></svg></button>
+      </div>
+      <div class="scene-foot"><span><svg class="icon"><use href="#i-orbit"/></svg>Потяните, чтобы повернуть</span><span class="model-note">Модель построена по фотографиям</span></div>
+    </div>
+    <div class="tour-picker-row"><label for="tour-picker">Постройка</label><select id="tour-picker"><option value="">Выберите модель</option></select></div>
+  </section>
+  <noscript><p class="embed-note">Для просмотра модели включите JavaScript.</p></noscript>
+  <script type="module" src="./embed.js"></script>
+</body>
+</html>
