@@ -1,0 +1,11 @@
+{
+  "name": "karkaswood-workshop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild backend/worker.mjs --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/server/index.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
