@@ -30,19 +30,25 @@ function decodePhoto(uri) {
   return {mime, bytes: Uint8Array.from(binary, char => char.charCodeAt(0))};
 }
 
+// Заменяет загруженные фотографии (обложку и галерею карточки) ссылками на /api/media/<хеш> и кладёт файлы в базу.
 export async function storePhotos(db, items, baseOrigin) {
   const result = [];
   const pending = new Map();
-  for (const item of items) {
-    if (!/^data:/i.test(item.photo)) {
-      result.push(item);
-      continue;
-    }
-    const {mime, bytes} = decodePhoto(item.photo);
+  async function stored(photo) {
+    if (!/^data:/i.test(photo)) return photo;
+    const {mime, bytes} = decodePhoto(photo);
     const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
     const hash = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
     pending.set(hash, {mime, bytes});
-    result.push({...item, photo: new URL('/api/media/' + hash, baseOrigin).href});
+    return new URL('/api/media/' + hash, baseOrigin).href;
+  }
+  for (const item of items) {
+    const next = {...item, photo: await stored(item.photo)};
+    if (Array.isArray(item.gallery)) {
+      next.gallery = [];
+      for (const photo of item.gallery) next.gallery.push(await stored(photo));
+    }
+    result.push(next);
   }
   if (pending.size) {
     const insert = db.prepare('INSERT OR IGNORE INTO kw_photos (hash, mime, bytes) VALUES (?, ?, ?)');

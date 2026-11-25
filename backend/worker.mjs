@@ -2,10 +2,13 @@ import seed from '../data/site.json' with { type: 'json' };
 import {storePhotos, servePhoto} from './media.mjs';
 import {legalValidationError} from '../assets/legal-validation.js';
 import {tourTemplates} from '../assets/tour-registry.js';
+import {SCHEMA, extraValidationError, itemExtraValidationError} from '../assets/site-defaults.js';
 
 const SITE_URL = 'https://zasamznal.github.io/karkaswood/';
 const PUBLIC_ORIGIN = new URL(SITE_URL).origin;
-const DOCUMENT_LIMIT = 850_000;
+// Запрос может нести новые фотографии, поэтому он крупнее каталога, который остаётся в базе после их выноса в таблицу kw_photos.
+const REQUEST_LIMIT = 2_500_000;
+const DOCUMENT_LIMIT = 900_000;
 const SESSION_SECONDS = 4 * 60 * 60;
 const WINDOW_SECONDS = 10 * 60;
 const encoder = new TextEncoder();
@@ -20,8 +23,8 @@ const seedRevision = () => seedHash ??= hash(seedDocument);
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const textField = (value, max) => typeof value === 'string' && value.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(value);
 const nonempty = (value, max) => textField(value, max) && value.trim().length > 0;
-const allowedSettings = new Set(['brand','heading','intro','location','phone','telegram','channel','insideWidth','legal','theme']);
-const allowedFields = new Set(['id','category','name','summary','dimensions','price','source','photo','published','tourId','offerNote']);
+const allowedSettings = new Set(['brand','heading','intro','location','phone','telegram','channel','insideWidth','legal','theme','extra']);
+const allowedFields = new Set(['id','category','name','summary','dimensions','price','source','photo','published','tourId','offerNote','included','clarify','badge','gallery']);
 const categories = new Set(['utility','bath','cabin','house']);
 
 class ApiError extends Error {
@@ -98,6 +101,8 @@ function validateDocument(body, ownOrigin) {
   if (!isRecord(settings) || !Array.isArray(items) || items.length > 400) fail(400, 'Проверьте структуру каталога.');
   const legalError = legalValidationError(settings.legal);
   if (legalError) fail(400, legalError);
+  const extraError = extraValidationError(settings.extra);
+  if (extraError) fail(400, extraError);
   if (settings.theme !== undefined && !['classic', 'newyear'].includes(settings.theme)) fail(400, 'Выберите доступное оформление сайта.');
   if (Object.keys(settings).some(key => !allowedSettings.has(key))
     || !nonempty(settings.brand, 200) || !nonempty(settings.heading, 400) || !nonempty(settings.location, 400)
@@ -114,6 +119,11 @@ function validateDocument(body, ownOrigin) {
     if (isRecord(item) && item.tourId !== undefined
       && !(typeof item.tourId === 'string' && (item.tourId === 'none' || Object.hasOwn(tourTemplates, item.tourId)))) {
       fail(400, 'Выберите 3D-тур из списка или скройте тур для этой карточки.');
+    }
+    const itemError = isRecord(item) ? itemExtraValidationError(item) : '';
+    if (itemError) fail(400, itemError);
+    if (isRecord(item) && Array.isArray(item.gallery) && !item.gallery.every(photo => photoAllowed(photo, ownOrigin))) {
+      fail(400, 'Проверьте дополнительные фотографии карточки.');
     }
     if (!isRecord(item) || Object.keys(item).some(key => !allowedFields.has(key))
       || !textField(item.id, 120) || !/^[a-z\d][a-z\d_-]*$/i.test(item.id) || ids.has(item.id)
@@ -180,11 +190,12 @@ async function requireSession(request, env) {
 async function readSite(db, isAdmin) {
   const row = await db.prepare('SELECT sha, document FROM kw_site WHERE id = 1').first();
   const {settings, items} = row ? JSON.parse(row.document) : seed;
-  return {settings, items: isAdmin ? items : items.filter(item => item.published === true && item.visible !== false), sha: row?.sha || await seedRevision()};
+  // schema сообщает панели, что сервер хранит расширенные поля: тексты сайта, галереи и комплектацию карточек.
+  return {settings, items: isAdmin ? items : items.filter(item => item.published === true && item.visible !== false), sha: row?.sha || await seedRevision(), schema: SCHEMA};
 }
 
 async function saveSite(request, db) {
-  const input = await readJson(request, DOCUMENT_LIMIT);
+  const input = await readJson(request, REQUEST_LIMIT);
   if (!isSha(input?.baseSha)) fail(400, 'Отсутствует исходная ревизия. Заново откройте кабинет.');
   const ownOrigin = new URL(request.url).origin;
   const site = validateDocument(input, ownOrigin);
@@ -204,6 +215,7 @@ async function saveSite(request, db) {
     throw error;
   }
   const document = JSON.stringify(site);
+  if (asBytes(document).length > DOCUMENT_LIMIT) fail(413, 'Каталог получился слишком большим. Сократите тексты или число карточек.');
   const sha = await hash(document);
   // This single SQLite statement checks the revision and writes on the primary atomically,
   // including the first edit of the embedded seed (no row yet).
@@ -213,7 +225,7 @@ async function saveSite(request, db) {
     'ON CONFLICT(id) DO UPDATE SET sha = excluded.sha, document = excluded.document'
   ).bind(sha, document, input.baseSha, initial).run();
   if (result.meta.changes !== 1) conflict(await currentSha());
-  return {sha, commit: sha, url: SITE_URL};
+  return {sha, commit: sha, url: SITE_URL, schema: SCHEMA};
 }
 
 const methods = new Map([['/api/site', ['GET']], ['/api/login', ['POST']], ['/api/admin/site', ['GET','PUT']]]);

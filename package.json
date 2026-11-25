@@ -3,9 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild backend/worker.mjs --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/server/index.js"
+    "build": "esbuild backend/worker.mjs --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/server/index.js",
+    "dev:site": "python3 -m http.server 8000 --bind 127.0.0.1",
+    "dev:api": "node --no-warnings backend/dev-server.mjs",
+    "test:api": "node backend/selftest.mjs"
   },
   "devDependencies": {
     "esbuild": "0.28.2"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
