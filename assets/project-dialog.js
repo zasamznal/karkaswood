@@ -69,7 +69,7 @@ export function openProjectTour(item, trigger, onContact) {
   header.append(heading,close);
   const layout=el('div','kw-tour-layout'), visual=el('div','kw-tour-visual');
   const switcher=el('div','kw-tour-switch'); switcher.setAttribute('role','group'); switcher.setAttribute('aria-label','Способ просмотра');
-  const modelMode=button('kw-tour-mode','cube','3D-модель'),photoMode=button('kw-tour-mode','photo','Фото');
+  const modelMode=button('kw-tour-mode','cube','Модель'),photoMode=button('kw-tour-mode','photo','Фото');
   modelMode.dataset.tourMode='model';photoMode.dataset.tourMode='photo';switcher.append(modelMode,photoMode);
   if (!photo) photoMode.hidden=true;
   const stage=el('div','kw-tour-stage'), scene=el('div','kw-tour-scene'); scene.setAttribute('aria-label','Трёхмерная модель проекта');
@@ -77,7 +77,7 @@ export function openProjectTour(item, trigger, onContact) {
   const photoStatus=el('p','kw-tour-photo-status','Загружаем фотографию…'); photoStatus.setAttribute('role','status');
   const image=el('img'); image.alt=item.name?'Фото производителя. '+item.name:'Фотография проекта производителя'; image.decoding='async';
   figure.append(image,photoStatus);
-  const stateBox=el('div','kw-tour-state'), stateLine=el('p','','Загружаем 3D-модель…');
+  const stateBox=el('div','kw-tour-state'), stateLine=el('p','','Загружаем модель…');
   stateLine.setAttribute('role','status');stateBox.append(stateLine);
   const retry=button('kw-tour-retry',null,'Попробовать снова'); retry.hidden=true;
   stateBox.append(retry);
@@ -94,7 +94,7 @@ export function openProjectTour(item, trigger, onContact) {
     const btn=button('kw-tour-view',key,label);btn.dataset.tourView=key;views.append(btn);viewButtons.set(key,btn);
   }
   const hint=el('p','kw-tour-hint','Потяните, чтобы повернуть');
-  const credit=el('p','kw-tour-credit','Фотография мастерской Karkaswood');credit.hidden=true;
+  const credit=el('p','kw-tour-credit','Фотография мастерской');credit.hidden=true;
   footer.append(views,hint,credit);visual.append(switcher,stage,footer);
   const side=el('aside','kw-tour-side');
   if (Object.hasOwn(categories,item.category)) side.append(el('p','kw-tour-kind',categories[item.category]));
@@ -104,7 +104,7 @@ export function openProjectTour(item, trigger, onContact) {
   }
   if (item.summary) side.append(el('p','kw-tour-summary',item.summary));
   const explanation=el('section','kw-tour-explanation');explanation.hidden=true;
-  const note=el('p');explanation.append(el('h3','','О 3D-модели'),note);side.append(explanation);
+  const note=el('p');explanation.append(el('h3','','О модели'),note);side.append(explanation);
   const contact=button('kw-tour-contact','chat','Обсудить проект');contact.dataset.tourContact='';
   const actions=el('div','kw-tour-actions');
   if (typeof onContact==='function') actions.append(contact);
@@ -139,7 +139,7 @@ export function openProjectTour(item, trigger, onContact) {
     hint.hidden=mode!=='model' || !mounted; credit.hidden=mode!=='photo' || photoFailed;
     stateBox.hidden=mode!=='model' || mounted;
     retry.hidden=pending || !canRender || !sceneError;
-    stateLine.textContent=sceneError || 'Загружаем 3D-модель…';
+    stateLine.textContent=sceneError || 'Загружаем модель…';
     auto.disabled=reduced.matches || view==='plan';
     const title=auto.disabled?(reduced.matches?'Автовращение отключено настройками движения':'Автовращение доступно для объёмного вида'):(autoActive?'Остановить автовращение':'Включить автовращение');
     auto.setAttribute('aria-label',title);auto.title=title;auto.setAttribute('aria-pressed',String(autoActive));
@@ -199,7 +199,7 @@ export function openProjectTour(item, trigger, onContact) {
     timeout=window.setTimeout(()=>{
       if(!isCurrent())return;
       loadAttempt++;
-      fail('Не удалось дождаться 3D-модели. Проверьте подключение.');
+      fail('Не удалось дождаться модели. Проверьте подключение.');
     },12000);
     try{
       const {projectDefinitions}=await import('./project-definitions.js');
@@ -207,7 +207,7 @@ export function openProjectTour(item, trigger, onContact) {
       const modelId=getTourId(item);
       const definition=modelId && Object.hasOwn(projectDefinitions,modelId)?projectDefinitions[modelId]:null;
       if(!definition){
-        clearTimeout(timeout);fail(photo?'Для этого проекта пока доступна фотография.':'3D-модель для этого проекта ещё не добавлена.',false);return;
+        clearTimeout(timeout);fail(photo?'Для этого проекта пока доступна фотография.':'Объёмная модель для этого проекта ещё не добавлена.',false);return;
       }
       note.textContent=typeof definition.note==='string' && definition.note.trim() ? definition.note : 'Схема по фотографиям. Высота, положение проёмов и внутренних перегородок ориентировочные.';
       explanation.hidden=false;
@@ -222,7 +222,7 @@ export function openProjectTour(item, trigger, onContact) {
     }catch{
       if(!isCurrent())return;
       clearTimeout(timeout);viewer?.dispose?.();viewer=null;scene.replaceChildren();mounted=false;
-      fail('3D-модель не загрузилась. Попробуйте ещё раз или откройте фотографию.');
+      fail('Модель не загрузилась. Попробуйте ещё раз или откройте фотографию.');
     }
   }
   image.addEventListener('load',()=>{clearTimeout(photoTimer);photoStatus.hidden=true;});

@@ -440,7 +440,7 @@ export function mountViewer(container) {
   canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;outline-offset:-3px';
   canvas.tabIndex = 0;
   canvas.setAttribute('role', 'img');
-  canvas.setAttribute('aria-label', '3D-модель барн-модуля. Вращение — движением по горизонтали или стрелками клавиатуры.');
+  canvas.setAttribute('aria-label', 'Объёмная модель барн-модуля. Вращение — движением по горизонтали или стрелками клавиатуры.');
   container.appendChild(canvas);
   scene.add(new THREE.HemisphereLight('#fff8e9', '#b4ae9e', 1.85));
   const sun = new THREE.DirectionalLight('#ffefd8', 2.45);

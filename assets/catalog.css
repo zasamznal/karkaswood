@@ -136,3 +136,11 @@ body:has(.kc-dialog[open]) {overflow:hidden}
 }
 .kc-owner-note {margin:0;font-size:.87rem;line-height:1.48;color:var(--kc-muted);white-space:pre-line;overflow-wrap:anywhere}
 .kc-owner-note>span {display:block;font-weight:600}
+
+.kc-badge {display:inline-flex;align-items:center;min-height:24px;padding:3px 9px;border-radius:13px;background:#24392e;color:#fff8e6;font:650 .7rem/1.2 var(--sans,sans-serif);letter-spacing:.04em;text-transform:none;white-space:nowrap}
+.kc-visual>.kc-badge {position:absolute;z-index:1;top:10px;left:10px;box-shadow:0 2px 8px #0f1f1633}
+.kc-badge-stock {background:#2f6b45}
+.kc-badge-new {background:#a5482b}
+.kc-kind>.kc-badge {margin-left:10px;vertical-align:middle;letter-spacing:.02em}
+[data-kw-season="newyear"] .kc-badge {background:#efcf91;color:#17382d}
+[data-kw-season="newyear"] .kc-badge-stock {background:#f4f7ee;color:#17443c}

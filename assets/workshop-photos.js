@@ -99,9 +99,17 @@ const albums = {
   },
 };
 
-export function getProjectPhotos(item) {
-  if (!item || typeof item.id !== 'string' || typeof item.source !== 'string' || !Object.hasOwn(albums, item.id)) return [];
+function workshopAlbum(item) {
+  if (typeof item.id !== 'string' || typeof item.source !== 'string' || !Object.hasOwn(albums, item.id)) return [];
   const album = albums[item.id];
   if (item.source.trim().replace(/\/$/, '') !== album.source) return [];
   return album.photos.filter(photo => photo.src !== item.photo).map(({src, alt}) => ({src, alt}));
+}
+
+// Фотографии из публикации мастерской и снимки, которые владелец добавил в панели.
+export function getProjectPhotos(item) {
+  if (!item) return [];
+  const added = (Array.isArray(item.gallery) ? item.gallery : []).filter(src => typeof src === 'string' && src && src !== item.photo)
+    .map((src, index) => ({src, alt: (item.name || 'Постройка') + ' — фото ' + (index + 2)}));
+  return [...workshopAlbum(item), ...added];
 }

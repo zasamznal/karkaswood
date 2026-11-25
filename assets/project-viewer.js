@@ -387,7 +387,7 @@ export function mountProjectViewer(container, definition) {
   function bindCanvas() {
     canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;outline-offset:-3px';
     canvas.tabIndex = 0; canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', 'Интерактивная 3D-модель. Поверните модель движением пальца или стрелками клавиатуры. Клавиши плюс и минус меняют масштаб.');
+    canvas.setAttribute('aria-label', 'Объёмная модель постройки. Поверните модель движением пальца или стрелками клавиатуры. Клавиши плюс и минус меняют масштаб.');
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
     for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) canvas.addEventListener(event, end);
     canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('keydown', key);
