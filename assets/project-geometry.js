@@ -83,6 +83,170 @@ function deck(faces, x0,x1,z0,z1, exposed=false, withPads=true) {
   }
 }
 
+function cylinder(faces, x, z, radius, lo, hi, appearance, sides = 12) {
+  if (hi - lo <= EPS) return;
+  const ring = Array.from({length: sides}, (_, i) => [x + radius * Math.cos(i * 2 * Math.PI / sides), z + radius * Math.sin(i * 2 * Math.PI / sides)]);
+  prism(faces, ring.map(([px, pz]) => [px, hi, pz]), ring.map(([px, pz]) => [px, lo, pz]), appearance);
+}
+
+// Мебель и оборудование показывают назначение помещений. Размеры типовые, расстановка условная.
+// У каждого предмета x и z — центр, length идёт вдоль оси axis ('x' по умолчанию), depth — поперёк.
+function footprint(item, length, depth) {
+  const along = num(item.length, length) / 2, across = num(item.depth, depth) / 2;
+  const x = num(item.x, 0), z = num(item.z, 0);
+  return item.axis === 'z' ? [x - across, z - along, x + across, z + along] : [x - along, z - across, x + along, z + across];
+}
+
+function slatTop(faces, x0, z0, x1, z1, top, axis, color, thickness = .04) {
+  const lengthwise = axis === 'z';
+  const span = lengthwise ? x1 - x0 : z1 - z0;
+  const count = Math.max(2, Math.round(span / .1));
+  for (let i = 0; i < count; i++) {
+    const a = i / count * span + .006, b = (i + 1) / count * span - .006;
+    const skin = style('base', variation(color, i), 'wood', lengthwise ? 'z' : 'x');
+    if (lengthwise) box(faces, x0 + a, top - thickness, z0, x0 + b, top, z1, skin);
+    else box(faces, x0, top - thickness, z0 + a, x1, top, z0 + b, skin);
+  }
+}
+
+const furnitureKit = {
+  // Полок: tiers 2 добавляет нижнюю ступень со стороны step (+1 или -1 поперёк полка).
+  bench(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 1.6, .6);
+    const top = FLOOR + num(item.height, item.tiers === 2 ? .92 : .46);
+    const wood = hex(item.color, '#dcc294');
+    const leg = style('base', mix(wood, '#6d5230', .25), 'wood');
+    for (const px of [x0 + .05, x1 - .05]) for (const pz of [z0 + .05, z1 - .05]) box(faces, px - .03, FLOOR, pz - .03, px + .03, top - .04, pz + .03, leg);
+    slatTop(faces, x0, z0, x1, z1, top, item.axis, wood);
+    if (item.tiers !== 2) return;
+    const depth = num(item.stepDepth, .38), side = item.step === -1 ? -1 : 1, low = FLOOR + .46;
+    const step = item.axis === 'z'
+      ? (side > 0 ? [x1, z0, x1 + depth, z1] : [x0 - depth, z0, x0, z1])
+      : (side > 0 ? [x0, z1, x1, z1 + depth] : [x0, z0 - depth, x1, z0]);
+    for (const px of [step[0] + .05, step[2] - .05]) for (const pz of [step[1] + .05, step[3] - .05]) box(faces, px - .03, FLOOR, pz - .03, px + .03, low - .04, pz + .03, leg);
+    slatTop(faces, step[0], step[1], step[2], step[3], low, item.axis, wood);
+    // Глухая подступенка закрывает пространство под верхним полком.
+    const riser = style('base', mix(wood, '#6d5230', .12), 'wood', item.axis === 'z' ? 'z' : 'x');
+    if (item.axis === 'z') { const rx = side > 0 ? x1 : x0; box(faces, rx - .012, low, z0, rx + .012, top - .04, z1, riser); }
+    else { const rz = side > 0 ? z1 : z0; box(faces, x0, low, rz - .012, x1, top - .04, rz + .012, riser); }
+  },
+  // Банная печь-сетка с камнями и трубой до кровли.
+  stove(faces, item, context) {
+    const x = num(item.x, 0), z = num(item.z, 0);
+    box(faces, x - .36, FLOOR, z - .36, x + .36, FLOOR + .012, z + .36, style('base', '#d5d2c6', 'plain'));
+    cylinder(faces, x, z, .2, FLOOR + .012, FLOOR + .62, style('base', '#2c2d2f', 'metal'), 14);
+    cylinder(faces, x, z, .185, FLOOR + .62, FLOOR + .7, style('base', '#8b877e', 'plain'), 10);
+    cylinder(faces, x, z, .062, FLOOR + .7, FLOOR + 1.05, style('base', '#a9a89f', 'metal'), 10);
+    cylinder(faces, x, z, .1, FLOOR + 1.05, FLOOR + 1.5, style('base', '#b8b7ae', 'metal'), 12);
+    cylinder(faces, x, z, .062, FLOOR + 1.5, context.roofY(x, z) - .04, style('base', '#a9a89f', 'metal'), 10);
+  },
+  shower(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, .8, .8);
+    box(faces, x0, FLOOR, z0, x1, FLOOR + .06, z1, style('base', '#eceeed', 'plain'));
+    box(faces, x0 + .05, FLOOR + .06, z0 + .05, x1 - .05, FLOOR + .066, z1 - .05, style('base', '#d7dcdb', 'plain'));
+    const px = num(item.x, 0), pz = z0 + .035, steel = style('base', '#b5b8b6', 'metal');
+    box(faces, px - .012, FLOOR + .06, pz - .012, px + .012, FLOOR + 2.02, pz + .012, steel);
+    box(faces, px - .09, FLOOR + 1.99, pz - .012, px + .09, FLOOR + 2.02, pz + .22, steel);
+  },
+  // Накопительный водонагреватель на стене.
+  heater(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, .78, .3);
+    const low = FLOOR + num(item.y, 1.35);
+    box(faces, x0, low, z0, x1, low + .34, z1, style('base', '#f1f2ef', 'plain'));
+    box(faces, x0 + .06, low + .1, z0 - .004, x1 - .06, low + .24, z1 + .004, style('base', '#dcdfdb', 'plain'));
+  },
+  // Обливное устройство: деревянное ведро под потолком.
+  bucket(faces, item) {
+    const x = num(item.x, 0), z = num(item.z, 0), low = FLOOR + num(item.y, 1.78);
+    cylinder(faces, x, z, .17, low, low + .3, style('base', '#c79a62', 'wood'), 12);
+    cylinder(faces, x, z, .178, low + .08, low + .11, style('base', '#56575a', 'metal'), 12);
+    cylinder(faces, x, z, .178, low + .22, low + .25, style('base', '#56575a', 'metal'), 12);
+  },
+  table(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 1, .6);
+    const top = FLOOR + num(item.height, .74), wood = hex(item.color, '#cfa878');
+    for (const px of [x0 + .05, x1 - .05]) for (const pz of [z0 + .05, z1 - .05]) box(faces, px - .028, FLOOR, pz - .028, px + .028, top - .035, pz + .028, style('base', mix(wood, '#5c4630', .3), 'wood'));
+    box(faces, x0, top - .035, z0, x1, top, z1, style('base', wood, 'wood', item.axis === 'z' ? 'z' : 'x'));
+  },
+  // Скамья со спинкой: back задаёт сторону спинки (+1 или -1 поперёк скамьи).
+  seat(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 1.3, .44);
+    const wood = hex(item.color, '#d2ad7c'), top = FLOOR + .44, side = item.back === 1 ? 1 : -1;
+    for (const px of [x0 + .04, x1 - .04]) for (const pz of [z0 + .04, z1 - .04]) box(faces, px - .026, FLOOR, pz - .026, px + .026, top - .035, pz + .026, style('base', mix(wood, '#5c4630', .3), 'wood'));
+    slatTop(faces, x0, z0, x1, z1, top, item.axis, wood, .035);
+    const skin = style('base', mix(wood, '#5c4630', .08), 'wood', item.axis === 'z' ? 'z' : 'x');
+    if (item.axis === 'z') { const bx = side > 0 ? x1 : x0; box(faces, bx - .02, top, z0, bx + .02, top + .42, z1, skin); }
+    else { const bz = side > 0 ? z1 : z0; box(faces, x0, top, bz - .02, x1, top + .42, bz + .02, skin); }
+  },
+  // Стеллаж с ящиками на полках.
+  shelves(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 1.8, .42);
+    const height = num(item.height, 1.8), levels = Math.max(2, Math.round(num(item.levels, 4)));
+    const post = style('base', '#b08c60', 'wood'), lengthwise = item.axis === 'z';
+    const span = lengthwise ? z1 - z0 : x1 - x0, bays = Math.max(1, Math.round(span / 1.1));
+    for (let i = 0; i <= bays; i++) for (const far of [0, 1]) {
+      const along = (lengthwise ? z0 : x0) + span * i / bays, across = far ? (lengthwise ? x1 - .02 : z1 - .02) : (lengthwise ? x0 + .02 : z0 + .02);
+      const px = lengthwise ? across : clamp(along, x0 + .02, x1 - .02), pz = lengthwise ? clamp(along, z0 + .02, z1 - .02) : across;
+      box(faces, px - .02, FLOOR, pz - .02, px + .02, FLOOR + height, pz + .02, post);
+    }
+    const bins = ['#c9a577', '#6f8a8e', '#a5553a', '#d7c9a3', '#55685a', '#b98a54'];
+    for (let level = 0; level < levels; level++) {
+      const y = FLOOR + .12 + (height - .16) * level / (levels - 1);
+      box(faces, x0, y - .025, z0, x1, y, z1, style('base', variation('#d1b182', level), 'wood', lengthwise ? 'z' : 'x'));
+      if (level === levels - 1) continue;
+      const room = (height - .16) / (levels - 1) - .06, count = Math.max(1, Math.floor(span / .62));
+      for (let n = 0; n < count; n++) {
+        const pick = (level * 3 + n * 5 + Math.round(span * 10)) % 7;
+        if (pick > 4) continue;
+        const size = .26 + (pick % 3) * .07, tall = Math.min(room, .16 + (pick % 4) * .06);
+        const center = (lengthwise ? z0 : x0) + span * (n + .5) / count;
+        const skin = style('base', bins[(level + n * 2 + pick) % bins.length], 'plain');
+        if (lengthwise) box(faces, x0 + .05, y, center - size / 2, x1 - .05, y + tall, center + size / 2, skin);
+        else box(faces, center - size / 2, y, z0 + .05, center + size / 2, y + tall, z1 - .05, skin);
+      }
+    }
+  },
+  workbench(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 1.6, .6);
+    const top = FLOOR + num(item.height, .88), frame = style('base', '#8f6f4a', 'wood');
+    for (const px of [x0 + .05, x1 - .05]) for (const pz of [z0 + .05, z1 - .05]) box(faces, px - .04, FLOOR, pz - .04, px + .04, top - .05, pz + .04, frame);
+    box(faces, x0 + .03, FLOOR + .2, z0 + .03, x1 - .03, FLOOR + .23, z1 - .03, style('base', '#c2a071', 'wood', item.axis === 'z' ? 'z' : 'x'));
+    box(faces, x0, top - .05, z0, x1, top, z1, style('base', '#d6b584', 'wood', item.axis === 'z' ? 'z' : 'x'));
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    box(faces, cx - .22, top, cz - .12, cx + .14, top + .13, cz + .12, style('base', '#a5482b', 'plain'));
+    box(faces, cx + .3, top, cz - .07, cx + .44, top + .1, cz + .07, style('base', '#4b5356', 'metal'));
+  },
+  stool(faces, item) {
+    const x = num(item.x, 0), z = num(item.z, 0);
+    cylinder(faces, x, z, .15, FLOOR + .42, FLOOR + .46, style('base', '#cfa878', 'wood'), 10);
+    for (const [dx, dz] of [[.09, .09], [-.09, .09], [.09, -.09], [-.09, -.09]]) box(faces, x + dx - .018, FLOOR, z + dz - .018, x + dx + .018, FLOOR + .42, z + dz + .018, style('base', '#8f6f4a', 'wood'));
+  },
+  bed(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 2, .9);
+    box(faces, x0, FLOOR, z0, x1, FLOOR + .26, z1, style('base', '#b08c60', 'wood', item.axis === 'z' ? 'z' : 'x'));
+    box(faces, x0 + .02, FLOOR + .26, z0 + .02, x1 - .02, FLOOR + .42, z1 - .02, style('base', '#e8e0cf', 'plain'));
+    const head = item.head === -1 ? -1 : 1;
+    if (item.axis === 'z') { const a = head > 0 ? z1 - .5 : z0 + .08, b = head > 0 ? z1 - .08 : z0 + .5; box(faces, x0 + .12, FLOOR + .42, a, x1 - .12, FLOOR + .5, b, style('base', '#f6f1e4', 'plain')); box(faces, x0 + .02, FLOOR + .42, head > 0 ? z0 + .02 : z0 + .62, x1 - .02, FLOOR + .47, head > 0 ? z1 - .62 : z1 - .02, style('base', '#7f917f', 'plain')); }
+    else { const a = head > 0 ? x1 - .5 : x0 + .08, b = head > 0 ? x1 - .08 : x0 + .5; box(faces, a, FLOOR + .42, z0 + .12, b, FLOOR + .5, z1 - .12, style('base', '#f6f1e4', 'plain')); box(faces, head > 0 ? x0 + .02 : x0 + .62, FLOOR + .42, z0 + .02, head > 0 ? x1 - .62 : x1 - .02, FLOOR + .47, z1 - .02, style('base', '#7f917f', 'plain')); }
+  },
+  // Поленница: торцы поленьев смотрят вдоль оси axis.
+  firewood(faces, item) {
+    const [x0, z0, x1, z1] = footprint(item, 1.3, .5);
+    const height = num(item.height, 1.2), lengthwise = item.axis === 'z';
+    const span = lengthwise ? z1 - z0 : x1 - x0, columns = Math.max(2, Math.round(span / .14)), rows = Math.max(2, Math.round(height / .13));
+    const palette = ['#c9a06c', '#b98b57', '#d8b684', '#a97c4c', '#c4a274'];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < columns; c++) {
+      const shift = r % 2 ? span / columns / 2 : 0;
+      const a = (lengthwise ? z0 : x0) + span * c / columns + shift + .008, b = a + span / columns - .016;
+      if (b > (lengthwise ? z1 : x1) + EPS) continue;
+      const y = FLOOR + height * r / rows, inset = ((r * 7 + c * 3) % 4) * .012;
+      const skin = style('base', palette[(r * 3 + c * 5) % palette.length], 'wood', lengthwise ? 'x' : 'z');
+      if (lengthwise) box(faces, x0 + inset, y + .006, a, x1 - inset, y + height / rows - .006, b, skin);
+      else box(faces, a, y + .006, z0 + inset, b, y + height / rows - .006, z1 - inset, skin);
+    }
+  },
+};
+
 // Roof lines are piecewise linear. Clip the upper wall boards to the actual rake.
 function clipTop(polygon, roofY) {
   const result=[];
@@ -256,7 +420,7 @@ function createShell(def) {
         solid(handle-.075,handle+.019,yy,yy+.022,.033,.080,style(side,'#343b38','metal'));
       }
       if(f.planter) {
-        solid(a-.045,b+.045,lo-.24,lo-.085,.02,.19,style(side,'#6a5541','wood',long?'x':'z'));
+        solid(a-.045,b+.045,lo-.24,lo-.085,.02,.19,style(side,hex(f.planterColor,'#6a5541'),'wood',long?'x':'z'));
         for(let k=0;k<Math.ceil(w/.11);k++) {
           const u=a+.04+((k+.5)*.113)%(w-.06);
           solid(u-.037,u+.037,lo-.10,lo-.015+Math.sin(k*9)*.032,.07,.15, style(side,variation('#688057',k),'plain'));
@@ -268,6 +432,18 @@ function createShell(def) {
           for(let y=lo+.055;y<hi-.035;y+=.095) solid(sa+.01,sb-.01,y,y+.028,.045,.062,crossbar);
         }
       }
+    }
+    // Фасадные светильники-кубы, как на фотографиях мастерской.
+    for(const lamp of (def.lamps || []).filter(it=>it.wall===side)) {
+      const u=clamp(start+(end-start)*clamp(num(lamp.at,.5),0,1),start+.1,end-.1), y=FLOOR+num(lamp.y,1.82);
+      solid(u-.045,u+.045,y,y+.13,.012,.1,style(side,'#2a2c2e','metal'));
+      solid(u-.03,u+.03,y-.012,y,.03,.085,style(side,'#f3d9a2','plain'));
+    }
+    // Ступень у входа. Она относится к основанию и не опускается вместе со стеной в разрезе.
+    if(def.steps!==false) for(const {feature:f,a,b,lo} of apertures) {
+      if(!['door','glazed','double'].includes(f.kind) || f.step===false || lo>FLOOR+.03) continue;
+      solid(a-.1,b+.1,.015,FLOOR-.045,.03,.36,style('base','#b89a70','wood',long?'x':'z'));
+      solid(a-.1,b+.1,FLOOR-.045,FLOOR-.012,.03,.38,style('base','#cbb089','wood',long?'x':'z'));
     }
   }
   for(const side of Object.keys(NORMALS)) buildWall(side);
@@ -304,6 +480,8 @@ function createShell(def) {
     for(let i=0;i<n;i++) box(faces,x-hx,top-.055,z-hz+2*hz*i/n+.005,x+hx,top,z-hz+2*hz*(i+1)/n-.005,style('base',variation('#d7b988',i),'wood','x'));
   }
 
+  for(const item of def.furniture||[]) furnitureKit[item.type]?.(faces,item,{roofY,eaves,height});
+
   const over=clamp(num(def.overhang,.095),.015,.45);
   const halfRun=(ridgeZ?width:length)/2;
   const roofAt=(along,across,offset=0)=>ridgeZ ? [across,roofY(across,along)+offset,along] : [along,roofY(along,across)+offset,across];
@@ -329,14 +507,12 @@ function createShell(def) {
     const base=roofY(x,z), stack=base+clamp(num(def.chimney.height,.68),.18,1.8);
     const flash=style('roof','#4c5250','metal'), steel=style('roof','#a5a49b','metal');
     box(faces,x-.15,base-.02,z-.15,x+.15,base+.08,z+.15,flash);
-    function tube(rad,lo,hi,skin) {
-      const ring=Array.from({length:12},(_,i)=>[x+rad*Math.cos(i*Math.PI/6),z+rad*Math.sin(i*Math.PI/6)]);
-      prism(faces,ring.map(([xx,zz])=>[xx,hi,zz]),ring.map(([xx,zz])=>[xx,lo,zz]),skin);
-    }
-    tube(.084,base+.03,stack,steel); tube(.115,stack-.043,stack+.002,flash); tube(.129,stack+.035,stack+.068,steel);
+    cylinder(faces,x,z,.084,base+.03,stack,steel); cylinder(faces,x,z,.115,stack-.043,stack+.002,flash); cylinder(faces,x,z,.129,stack+.035,stack+.068,steel);
   }
   return {faces,length,width,height,floor:FLOOR};
 }
+
+export const FLOOR_LEVEL = FLOOR;
 
 export function createProjectGeometry(definition = {}) {
   if (!definition.compound?.parts?.length) return createShell(definition);
