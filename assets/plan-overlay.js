@@ -58,10 +58,19 @@ export function createPlanOverlay(container, { rooms = [], bounds, length, width
       shown = visible ? 1 : 0;
       root.style.display = visible ? '' : 'none';
       if (!visible) return;
-      for (const { node, room } of labels) {
-        const [x, y] = project(room.x, bounds?.y ?? 0, room.z);
-        node.style.opacity = roomAlpha.toFixed(3);
-        node.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`;
+      // На узком экране подписи соседних помещений сходятся. Сдвигаем их по вертикали, чтобы читалась каждая.
+      const placed = [];
+      for (const label of labels) {
+        let [x, y] = project(label.room.x, bounds?.y ?? 0, label.room.z);
+        if (!label.w) { label.w = label.node.offsetWidth; label.h = label.node.offsetHeight; }
+        for (let pass = 0; pass < 5; pass++) {
+          const hit = placed.find(other => Math.abs(other.x - x) < (other.w + label.w) / 2 + 2 && Math.abs(other.y - y) < (other.h + label.h) / 2 + 2);
+          if (!hit) break;
+          y = hit.y + (y >= hit.y ? 1 : -1) * ((hit.h + label.h) / 2 + 3);
+        }
+        placed.push({ x, y, w: label.w, h: label.h });
+        label.node.style.opacity = roomAlpha.toFixed(3);
+        label.node.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`;
       }
       if (!hasDims) return;
       const gap = Math.min(.8, Math.max(.58, Math.max(length, width) * .09));

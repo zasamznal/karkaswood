@@ -109,3 +109,7 @@ html[data-kw-season="newyear"] #viewer.fp-ready .fp-summary { border-color: #698
   #viewer.fp-ready .fp-measure { display: block; }
   #viewer.fp-ready .fp-measure .icon { display: none; }
 }
+
+/* Свободная часть сцены: модель не заходит под переключатели вида и нижнюю строку. */
+.scene { --kw-fit-top: 46px; --kw-fit-bottom: 36px; }
+@media (max-width: 720px) { .scene { --kw-fit-top: 54px; --kw-fit-bottom: 84px; } }

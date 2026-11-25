@@ -1,11 +1,13 @@
-const API = 'https://karkaswood-barn-kosulino.fresh-book-1093.chatgpt.site/api';
-const SITE_URL = 'https://zasamznal.github.io/karkaswood/';
-const MAX_BYTES = 850_000;
+import { API_BASE as API, SITE_URL } from '../assets/config.js';
+import { SCHEMA, stripExtended } from '../assets/site-defaults.js';
+
+// Сервер первой версии принимает до 850 КБ. Сервер второй версии выносит фотографии в отдельную таблицу и принимает до 2,4 МБ.
+const MAX_BYTES = {1: 850_000, 2: 2_400_000};
 const isRevision = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const error = (code, message, status = 0) => Object.assign(new Error(message), {code, status});
 
 function tooLarge(status = 0) {
-  return error('size', 'Каталог вместе с фотографиями должен занимать до 850 КБ. Уменьшите фотографии или укажите ссылки на них.', status);
+  return error('size', 'Слишком много новых фотографий за одну публикацию. Опубликуйте изменения частями: сначала одну-две карточки, затем остальные.', status);
 }
 
 function httpError(status, login) {
@@ -76,20 +78,26 @@ function ownerSession(token) {
     }
   }
 
+  // Версия данных, которую умеет хранить сервер: 1 — базовые поля, 2 — тексты сайта, галереи и комплектация.
+  let schema = 1;
   return {
     username: 'Владелец',
     logout,
+    get schema() { return schema; },
     async load() {
       const doc = await siteRequest('GET');
       if (!isRevision(doc?.sha)) throw error('response', 'Не удалось узнать версию каталога. Обновите страницу.');
       validateDocument(doc);
-      return {settings: doc.settings, items: doc.items, sha: doc.sha};
+      schema = Number(doc.schema) >= SCHEMA ? SCHEMA : 1;
+      return {settings: doc.settings, items: doc.items, sha: doc.sha, schema};
     },
     async publish(doc, baseSha) {
       if (!isRevision(baseSha)) throw error('conflict', 'Загрузите текущую версию каталога перед публикацией.');
       validateDocument(doc);
-      const body = JSON.stringify({settings: doc.settings, items: doc.items, baseSha});
-      if (new TextEncoder().encode(body).length > MAX_BYTES) throw tooLarge();
+      // Старому серверу расширенные поля не отправляем: он отклонит весь каталог.
+      const payload = schema >= SCHEMA ? doc : stripExtended(doc);
+      const body = JSON.stringify({settings: payload.settings, items: payload.items, baseSha});
+      if (new TextEncoder().encode(body).length > MAX_BYTES[schema]) throw tooLarge();
       const result = await siteRequest('PUT', body);
       if (!isRevision(result?.sha) || !isRevision(result.commit) || result.url !== SITE_URL) {
         throw error('response', 'Сервер не подтвердил версию публикации. Проверьте текущий каталог перед повторной отправкой.');
