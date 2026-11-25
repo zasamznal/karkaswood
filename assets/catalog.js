@@ -364,8 +364,8 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
 
   function tourLink(item, opener) {
     const embedded = getTourId(item) === 'barn-2-4-5';
-    const link = element(embedded ? 'a' : 'button','kc-tour','Смотреть в 3D');
-    link.setAttribute('aria-label','Смотреть в 3D: '+item.name);
+    const link = element(embedded ? 'a' : 'button','kc-tour','Объёмная модель');
+    link.setAttribute('aria-label','Открыть объёмную модель: '+item.name);
     if (embedded) link.href = '#viewer';
     else {
       link.type = 'button';
@@ -425,7 +425,7 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
     const text = element('div');
     if (category === 'house') {
       text.append(element('h3','','Какой дом вы хотите построить?'),
-        element('p','','Расскажите Дмитрию о желаемых размерах и планировке дома.'));
+        element('p','','Расскажите мастерской о желаемых размерах и планировке дома.'));
       box.append(text,contactButton(houseRequest,'Обсудить проект дома'));
     } else {
       text.append(element('h3','','Пока нет опубликованных моделей'));

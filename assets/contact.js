@@ -1,33 +1,15 @@
+import { getChannels } from './channels.js';
+
 const supportedBedWidths = ['90', '140', '160'];
 const defaults = {
   location: 'Косулино, Свердловская область',
   phone: '+79935031990',
   telegram: 'https://t.me/Karkaswood_ekb',
 };
+const privacyURL = new URL('../info/#privacy', import.meta.url).href;
 
 let showContact;
 let siteSettings = defaults;
-
-function telegramProfile(value) {
-  if (typeof value !== 'string') return null;
-  const match = value.trim().match(/^(?:@?([a-z][a-z\d_]{3,30}[a-z\d])|(?:https?:\/\/)?(?:www\.)?(?:t\.me|telegram\.me)\/([a-z][a-z\d_]{3,30}[a-z\d])\/?)$/i);
-  if (!match) return null;
-  const username = match[1] || match[2];
-  if (/^(addemoji|addlist|addstickers|addtheme|boost|confirmphone|contact|folder|giftcode|invoice|joinchat|login|proxy|setlanguage|share|socks|suggestedpost|tonsite)$/i.test(username)) return null;
-  return new URL('https://t.me/' + username);
-}
-
-function normalizePhone(value) {
-  if (typeof value !== 'string' || !/^\+?[\d\s().–-]+$/.test(value.trim())) return '';
-  let digits = value.replace(/\D/g, '');
-  if (!value.trim().startsWith('+')) {
-    if (digits.length === 10) digits = '7' + digits;
-    else if (/^[78]\d{10}$/.test(digits)) digits = '7' + digits.slice(1);
-    else return '';
-  }
-  if (!/^[1-9]\d{6,14}$/.test(digits) || (digits[0] === '7' && digits.length !== 11)) return '';
-  return '+' + digits;
-}
 
 function projectsFor(selection) {
   const candidates = Array.isArray(selection) ? selection : Array.isArray(selection?.items) ? selection.items : [selection];
@@ -47,7 +29,7 @@ function projectLabel(item) {
   return size ? `${name} (${size})` : name;
 }
 
-function inquiryFor(projects, selectedWidth, topic, town, location) {
+function inquiryFor(projects, selectedWidth, topic, town, location, contactName) {
   const comparing = projects.length > 1;
   const house = projects.length === 1 && projects[0].id === 'house-project';
   const barn = projects.find(item => (item.tourId ?? item.id) === 'barn-2-4-5');
@@ -73,7 +55,7 @@ function inquiryFor(projects, selectedWidth, topic, town, location) {
   } else {
     question = comparing ? 'Подскажите актуальную цену каждого проекта в базовой комплектации и основные различия между ними.' : 'Подскажите актуальную стоимость и что входит в базовую комплектацию.';
   }
-  const parts = ['Дмитрий, здравствуйте! ' + subject, question];
+  const parts = [(contactName ? contactName + ', здравствуйте! ' : 'Здравствуйте! ') + subject, question];
   if (hasBed) parts.push(`Для барн-модуля планирую кровать шириной ${selectedWidth} см. Подскажите точную ширину между стенами внутри модуля?`);
   const area = town.trim().replace(/\s+/g, ' ').slice(0, 80);
   if (area) parts.push(`Место доставки — ${area}. Сколько будет стоить доставка?`);
@@ -128,8 +110,16 @@ export function mountContact(settings) {
       text-decoration: none; font-size: 15px; line-height: 1.3; font-weight: 600; }
     .kw-contact-dialog .kw-contact-primary { background: #964b31; color: white; }
     .kw-contact-dialog .kw-contact-primary:hover { background: #7e3e27; }
-    .kw-contact-dialog .kw-contact-phone { color: #30352f; margin: 6px 0 -10px; }
+    .kw-contact-dialog .kw-contact-phone { color: #30352f; }
     .kw-contact-dialog .kw-contact-phone:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .kw-contact-actions { display: grid; gap: 8px; }
+    .kw-contact-dialog .kw-contact-option { display: flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 46px; padding: 9px 16px; border: 1px solid #b9b5a6; border-radius: 7px; background: #fffefa;
+      color: #30352f; text-decoration: none; font-size: 15px; line-height: 1.3; font-weight: 600; }
+    .kw-contact-dialog .kw-contact-option:hover { border-color: #84442d; color: #84442d; }
+    .kw-contact-dialog .kw-contact-phone { margin: 0; min-height: 46px; }
+    .kw-contact-dialog .kw-contact-hint { margin: 14px 0 0; color: #5e635c; font-size: 12.5px; line-height: 1.5; }
+    .kw-contact-hint a { color: inherit; text-underline-offset: 3px; }
     .kw-contact-dialog [hidden] { display: none; }
     .kw-contact-dialog :focus-visible { outline: 3px solid #a85635; outline-offset: 3px; }
     .kw-contact-dialog svg { flex: none; display: inline-block; }
@@ -162,21 +152,25 @@ export function mountContact(settings) {
         </label>
       </div>
       <div class="kw-contact-message">
-        <strong class="kw-contact-preview-label">Ваше сообщение Дмитрию</strong>
+        <strong class="kw-contact-preview-label">Ваше сообщение мастерской</strong>
         <p class="kw-contact-draft"></p>
         <button type="button" class="kw-contact-copy">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="7.2" y="7" width="9.4" height="10.3" rx="1.6"/><path d="M5.1 13.3h-.8a1.5 1.5 0 0 1-1.5-1.5V4a1.5 1.5 0 0 1 1.5-1.5h7.2A1.5 1.5 0 0 1 13 4v1"/></svg>
           <span>Скопировать текст</span>
         </button>
       </div>
-      <a class="kw-contact-primary" target="_blank" rel="noopener noreferrer">
-        Открыть Telegram
-        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15 15 4M5 4h10v10"/></svg>
-      </a>
-      <a class="kw-contact-phone">
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7.3 3.2 4.9 3c-1.2 0-2.1 1-2 2.2.8 8.1 7.6 14.9 15.8 15.8 1.3.1 2.3-.8 2.3-2l-.3-2.4-5-2.2-1.8 1.9a17.4 17.4 0 0 1-6.5-6.5l2-1.8-2.1-4.8Z"/></svg>
-        <span></span>
-      </a>
+      <div class="kw-contact-actions">
+        <a class="kw-contact-option" data-channel="telegram" target="_blank" rel="noopener noreferrer">Написать в Telegram<svg aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15 15 4M5 4h10v10"/></svg></a>
+        <a class="kw-contact-option" data-channel="max" target="_blank" rel="noopener noreferrer">Написать в MAX<svg aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15 15 4M5 4h10v10"/></svg></a>
+        <a class="kw-contact-option" data-channel="whatsapp" target="_blank" rel="noopener noreferrer">Написать в WhatsApp<svg aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15 15 4M5 4h10v10"/></svg></a>
+        <a class="kw-contact-option" data-channel="sms">Отправить СМС</a>
+        <a class="kw-contact-option" data-channel="email">Написать на почту</a>
+        <a class="kw-contact-phone" data-channel="phone">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7.3 3.2 4.9 3c-1.2 0-2.1 1-2 2.2.8 8.1 7.6 14.9 15.8 15.8 1.3.1 2.3-.8 2.3-2l-.3-2.4-5-2.2-1.8 1.9a17.4 17.4 0 0 1-6.5-6.5l2-1.8-2.1-4.8Z"/></svg>
+          <span></span>
+        </a>
+      </div>
+      <p class="kw-contact-hint">Сайт ничего не отправляет сам: текст попадёт в мессенджер, и вы отправите его мастерской. Если Telegram не открывается, позвоните или отправьте СМС. <a href="${privacyURL}" target="_blank" rel="noopener">Как обрабатываются данные</a></p>
       <span class="kw-contact-announcement" role="status"></span>
     </div>`;
   document.body.append(dialog);
@@ -185,67 +179,105 @@ export function mountContact(settings) {
   const copy = dialog.querySelector('.kw-contact-copy');
   const copyLabel = copy.querySelector('span');
   const announcement = dialog.querySelector('[role="status"]');
-  const primary = dialog.querySelector('.kw-contact-primary');
-  const phoneLink = dialog.querySelector('.kw-contact-phone');
-  const phoneLabel = phoneLink.querySelector('span');
+  const links = Object.fromEntries([...dialog.querySelectorAll('[data-channel]')].map(link => [link.dataset.channel, link]));
+  const phoneLabel = links.phone.querySelector('span');
+  const hint = dialog.querySelector('.kw-contact-hint');
   const heading = dialog.querySelector('.kw-contact-heading');
   const description = dialog.querySelector('.kw-contact-desc');
   const topic = dialog.querySelector('[name="quote-topic"]');
   const town = dialog.querySelector('[name="quote-town"]');
+  const touch = matchMedia('(pointer: coarse)');
 
   let opener;
   let projects = [];
   let bedWidth;
-  let telegram;
+  let channels = getChannels(siteSettings);
   function refreshDraft() {
-    draft.textContent = inquiryFor(projects, bedWidth, topic.value, town.value, siteSettings.location);
+    draft.textContent = inquiryFor(projects, bedWidth, topic.value, town.value, siteSettings.location, channels.contactName);
     copyLabel.textContent = 'Скопировать текст';
     announcement.textContent = '';
   }
   topic.addEventListener('change', refreshDraft);
   town.addEventListener('input', refreshDraft);
 
-  // Keep the delivery town out of outgoing URLs until the visitor opens Telegram.
-  function prepareTelegramLink() {
-    if (!telegram || !dialog.open) return;
-    const target = new URL(telegram);
-    target.searchParams.set('text', draft.textContent);
-    primary.href = target.href;
-    setTimeout(() => {
-      if (dialog.open && telegram) primary.href = telegram.href;
-    }, 0);
+  async function copyDraft() {
+    try {
+      await navigator.clipboard.writeText(draft.textContent);
+      return true;
+    } catch { return false; }
   }
-  primary.addEventListener('click', prepareTelegramLink);
-  primary.addEventListener('auxclick', event => {
-    if (event.button === 1) prepareTelegramLink();
-  });
+
+  // Keep the delivery town out of outgoing URLs until the visitor picks a channel.
+  const prepared = {
+    telegram() { const url = new URL(channels.telegram); url.searchParams.set('text', draft.textContent); return url.href; },
+    whatsapp() { const url = new URL(channels.whatsapp); url.searchParams.set('text', draft.textContent); return url.href; },
+    sms() { return 'sms:' + channels.phone + '?&body=' + encodeURIComponent(draft.textContent); },
+    email() { return 'mailto:' + channels.email + '?subject=' + encodeURIComponent('Вопрос с сайта') + '&body=' + encodeURIComponent(draft.textContent); },
+  };
+  const plain = {
+    telegram: () => channels.telegram?.href, whatsapp: () => channels.whatsapp?.href, max: () => channels.max?.href,
+    sms: () => channels.phone ? 'sms:' + channels.phone : '', email: () => channels.email ? 'mailto:' + channels.email : '',
+    phone: () => channels.phone ? 'tel:' + channels.phone : '',
+  };
+  function prepare(name) {
+    const link = links[name];
+    if (!dialog.open || link.hidden) return;
+    if (name === 'max') {
+      // MAX не принимает готовый текст в ссылке, поэтому кладём его в буфер обмена.
+      void copyDraft().then(copied => {
+        if (!dialog.open) return;
+        const message = copied ? 'Текст скопирован. Вставьте его в чат MAX.' : 'Скопируйте текст и вставьте его в чат MAX.';
+        copyLabel.textContent = copied ? 'Текст скопирован' : 'Скопировать текст';
+        announcement.textContent = message;
+      });
+      return;
+    }
+    if (!prepared[name]) return;
+    link.href = prepared[name]();
+    setTimeout(() => { if (dialog.open) link.href = plain[name](); }, 0);
+  }
+  for (const [name, link] of Object.entries(links)) {
+    link.addEventListener('click', () => prepare(name));
+    link.addEventListener('auxclick', event => { if (event.button === 1) prepare(name); });
+  }
 
   showContact = (trigger, selection) => {
     if (dialog.open) return;
     projects = projectsFor(selection);
     bedWidth = document.documentElement.dataset.selectedBedWidth;
-    telegram = telegramProfile(siteSettings.telegram);
-    const phone = normalizePhone(siteSettings.phone);
-    primary.hidden = !telegram;
-    phoneLink.hidden = !phone;
-    primary.removeAttribute('href');
-    phoneLink.removeAttribute('href');
-    if (telegram) primary.href = telegram.href;
-    if (phone) {
-      const formatted = phone.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4');
-      phoneLink.href = 'tel:' + phone;
-      phoneLink.setAttribute('aria-label', 'Позвонить Дмитрию по номеру ' + formatted);
-      phoneLabel.textContent = formatted;
+    channels = getChannels(siteSettings);
+    const available = {
+      telegram: Boolean(channels.telegram), max: Boolean(channels.max), whatsapp: Boolean(channels.whatsapp),
+      sms: Boolean(channels.phone) && touch.matches, email: Boolean(channels.email), phone: Boolean(channels.phone),
+    };
+    let primary = false;
+    for (const [name, link] of Object.entries(links)) {
+      link.hidden = !available[name];
+      link.removeAttribute('href');
+      if (available[name]) link.href = plain[name]();
+      if (name === 'phone') continue;
+      const first = available[name] && !primary;
+      link.classList.toggle('kw-contact-primary', first);
+      link.classList.toggle('kw-contact-option', !first);
+      if (first) primary = true;
+    }
+    links.phone.classList.toggle('kw-contact-primary', available.phone && !primary);
+    links.phone.classList.toggle('kw-contact-phone', !(available.phone && !primary));
+    if (channels.phone) {
+      links.phone.setAttribute('aria-label', 'Позвонить в мастерскую по номеру ' + channels.phoneLabel);
+      phoneLabel.textContent = 'Позвонить: ' + channels.phoneLabel;
     } else {
-      phoneLink.removeAttribute('aria-label');
+      links.phone.removeAttribute('aria-label');
       phoneLabel.textContent = '';
     }
+    const messenger = available.telegram || available.max || available.whatsapp || available.sms || available.email;
+    hint.hidden = !messenger;
     topic.value = trigger instanceof Element && (trigger.dataset.contact === 'visit' || /просмотр|приехать/i.test(trigger.textContent)) ? 'visit' : 'price';
     town.value = '';
     heading.textContent = projects.length > 1 ? 'Сравнить проекты' : projects[0]?.id === 'house-project' ? 'Обсудить проект дома'
       : topic.value === 'visit' ? 'Запись на просмотр' : 'Запросить расчёт';
-    description.textContent = telegram ? 'Черновик создаётся в вашем браузере. Кнопка «Открыть Telegram» перенесёт текст в чат. Отправьте его, когда будете готовы.'
-      : phone ? 'Подготовьте вопросы в этом окне. Текст можно скопировать, а детали обсудить с Дмитрием по телефону.' : 'Черновик можно скопировать. Контакты мастерской пока не указаны.';
+    description.textContent = messenger ? 'Уточните, что вас интересует. Мы подготовим текст сообщения — останется выбрать удобный способ связи.'
+      : channels.phone ? 'Подготовьте вопросы в этом окне. Текст можно скопировать, а детали обсудить по телефону.' : 'Текст можно скопировать. Контакты мастерской пока не указаны.';
     refreshDraft();
     opener = trigger instanceof HTMLElement ? trigger : document.activeElement;
     dialog.showModal();
@@ -258,10 +290,9 @@ export function mountContact(settings) {
     document.documentElement.classList.remove('kw-contact-active');
     town.value = '';
     draft.textContent = '';
-    primary.removeAttribute('href');
+    for (const link of Object.values(links)) link.removeAttribute('href');
     projects = [];
     bedWidth = undefined;
-    telegram = null;
     if (opener?.isConnected) opener.focus({ preventScroll: true });
   });
   dialog.querySelector('.kw-contact-close').addEventListener('click', () => dialog.close());
@@ -272,11 +303,8 @@ export function mountContact(settings) {
         event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
   });
   copy.addEventListener('click', async () => {
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(draft.textContent);
-      copied = true;
-    } catch {
+    let copied = await copyDraft();
+    if (!copied) {
       const selection = window.getSelection();
       const range = document.createRange();
       range.selectNodeContents(draft);

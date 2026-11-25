@@ -1,4 +1,7 @@
-const CONTENT_URL = 'https://karkaswood-barn-kosulino.fresh-book-1093.chatgpt.site/api/site';
+import { API_BASE } from './config.js';
+import { normalizeSite, SCHEMA } from './site-defaults.js';
+
+const CONTENT_URL = API_BASE + '/site';
 const seedUrl = new URL('../data/site.json', import.meta.url);
 const draftKey = 'kw:site-draft:v1';
 const publicKey = 'kw:public-site:v2';
@@ -15,7 +18,9 @@ function readSaved(key) {
 }
 
 export function getPreviewDraft() {
-  return new URLSearchParams(location.search).get('preview') === 'draft' ? readSaved(draftKey) : null;
+  if (new URLSearchParams(location.search).get('preview') !== 'draft') return null;
+  const draft = readSaved(draftKey);
+  return draft ? normalizeSite(draft) : null;
 }
 
 async function getJson(url, signal) {
@@ -26,14 +31,19 @@ async function getJson(url, signal) {
   return data;
 }
 
+// source: 'live' — ответ сервера, 'cache' — последняя успешная копия, 'seed' — стартовый каталог из репозитория.
+// schema: версия данных, которую умеет хранить сервер. Стартовый каталог всегда полной версии.
 export async function loadPublicSite() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 4500);
   try {
     const live = await getJson(CONTENT_URL, controller.signal);
     try { localStorage.setItem(publicKey, JSON.stringify(live)); } catch { /* Storage can be full or disabled. */ }
-    return live;
+    return { ...normalizeSite(live), schema: Number(live.schema) || 1, source: 'live' };
   } catch {
-    return readSaved(publicKey) || await getJson(seedUrl);
+    const cached = readSaved(publicKey);
+    if (cached) return { ...normalizeSite(cached), schema: Number(cached.schema) || 1, source: 'cache' };
+    const seed = await getJson(seedUrl);
+    return { ...normalizeSite(seed), schema: SCHEMA, source: 'seed' };
   } finally { clearTimeout(timeout); }
 }
