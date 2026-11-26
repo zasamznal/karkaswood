@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.min.js';
 import { createProjectGeometry } from './project-geometry.js';
 import { seasonalGround } from './seasonal-ground.js';
+import { createPlanOverlay } from './plan-overlay.js';
 
 const { clamp, smoothstep } = THREE.MathUtils;
 const WALLS = { front: [0, 1], back: [0, -1], left: [-1, 0], right: [1, 0] };
@@ -123,8 +124,9 @@ function makeWebGL(canvas, geometry, winter) {
   const sun = new THREE.DirectionalLight('#fff3df', 2.35), fill = new THREE.DirectionalLight('#e2edf2', 0.60);
   const cx = (geometry.min[0] + geometry.max[0]) / 2, cz = (geometry.min[2] + geometry.max[2]) / 2;
   const span = Math.max(geometry.max[0] - geometry.min[0], geometry.max[2] - geometry.min[2], geometry.max[1] - geometry.min[1]);
-  sun.position.set(cx - span, span * 1.5, cz + span * 1.25); sun.target.position.set(cx, 0, cz);
-  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  const sunHome = [cx - span, span * 1.5, cz + span * 1.25];
+  sun.position.set(...sunHome); sun.target.position.set(cx, 0, cz);
+  sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -span, right: span, bottom: -span, top: span, near: 0.2, far: span * 5 + 6 });
   sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.014;
   fill.position.set(cx + span, span, cz - span); fill.target.position.set(cx, 0, cz);
@@ -144,6 +146,12 @@ function makeWebGL(canvas, geometry, winter) {
           mesh.castShadow = group.alpha > 0.6;
         }
       }
+      // В разрезе солнце встаёт за камерой, на плане — почти в зенит: дальние стены не затеняют пол.
+      const open = view.open || 0, flat = view.plan || 0;
+      const follow = [cx + (view.dx * .9 - view.dz * .4) * span, span * 1.9, cz + (view.dz * .9 + view.dx * .4) * span];
+      const zenith = [cx + span * .12, span * 2.6, cz + span * .2];
+      const lit = sunHome.map((value, i) => { const side = value + (follow[i] - value) * open; return side + (zenith[i] - side) * flat; });
+      sun.position.set(...lit); sun.shadow.intensity = 1 - .35 * open - .4 * flat;
       const r = Math.max(span * 4, 12);
       camera.far = r * 2.5;
       camera.position.set(view.dx * view.cp * r, view.sp * r, view.dz * view.cp * r);
@@ -261,6 +269,10 @@ export function mountProjectViewer(container, definition) {
   let canvas = document.createElement('canvas'), engine, gl = false;
   try { engine = makeWebGL(canvas, geometry, winter); gl = true; }
   catch { canvas = document.createElement('canvas'); engine = makeCanvas(canvas, geometry, winter); }
+  const plain = Number.isFinite(model.length) && Number.isFinite(model.width);
+  const overlay = createPlanOverlay(container, { rooms: definition.rooms, length: model.length, width: model.width,
+    bounds: plain ? { x0: -model.length / 2, x1: model.length / 2, z0: -model.width / 2, z1: model.width / 2, y: floor } : null });
+  let insetTop = 0, insetBottom = 0;
   const pointers = new Map();
   let mode = 'outside', yaw = initialYaw, pitch = 0.38, goalYaw = yaw, goalPitch = pitch;
   let zoom = 1, opening = 0, plan = 0, auto = false, visible = true, disposed = false;
@@ -302,12 +314,19 @@ export function mountProjectViewer(container, definition) {
         minU = Math.min(minU, u); maxU = Math.max(maxU, u); minV = Math.min(minV, v); maxV = Math.max(maxV, v);
       }
     }
-    const aspect = width / height, span = Math.max(maxV - minV, (maxU - minU) / aspect) * 1.18 / zoom;
-    const targetU = (minU + maxU) / 2, targetV = (minV + maxV) / 2;
+    // Панели управления перекрывают верх и низ сцены. Модель вписывается в свободную часть.
+    const free = Math.max(height * .5, height - insetTop - insetBottom), aspect = width / height;
+    const margin = plan > .5 ? 1.34 : 1.18;
+    const span = Math.max(maxV - minV, (maxU - minU) / (width / free)) * margin / zoom * height / free;
+    const targetU = (minU + maxU) / 2, targetV = (minV + maxV) / 2 + span * (insetTop - insetBottom) / (2 * height);
     if (viewHeight === undefined) { centerU = targetU; centerV = targetV; viewHeight = span; }
     centerU += (targetU - centerU) * ease; centerV += (targetV - centerV) * ease; viewHeight += (span - viewHeight) * ease;
-    engine.render({ dx, dz, cp, sp, left: centerU - viewHeight * aspect / 2, right: centerU + viewHeight * aspect / 2,
-      bottom: centerV - viewHeight / 2, top: centerV + viewHeight / 2 });
+    const left = centerU - viewHeight * aspect / 2, top = centerV + viewHeight / 2;
+    engine.render({ dx, dz, cp, sp, left, right: centerU + viewHeight * aspect / 2,
+      bottom: centerV - viewHeight / 2, top, open: cut, plan: planMix });
+    overlay.update((x, y, z) => [(x * dz - z * dx - left) / (viewHeight * aspect) * width,
+      (top - (y * cp - (x * dx + z * dz) * sp)) / viewHeight * height],
+      { rooms: smoothstep(cut, .55, 1), dims: smoothstep(planMix, .6, 1) });
     const changing = Math.max(Math.abs(goalYaw - yaw), Math.abs(goalPitch - pitch), Math.abs(span - viewHeight), Math.abs(targetU - centerU), Math.abs(targetV - centerV));
     if (auto || opening !== openGoal || plan !== planGoal || changing > 0.0008) schedule();
   }
@@ -338,6 +357,8 @@ export function mountProjectViewer(container, definition) {
     if (disposed) return;
     const rect = container.getBoundingClientRect();
     width = Math.max(1, Math.round(rect.width)); height = Math.max(1, Math.round(rect.height));
+    const css = getComputedStyle(container);
+    insetTop = parseFloat(css.getPropertyValue('--kw-fit-top')) || 0; insetBottom = parseFloat(css.getPropertyValue('--kw-fit-bottom')) || 0;
     engine.resize(width, height, window.devicePixelRatio || 1); viewHeight = undefined; schedule();
   }
   const distance = () => { const [a, b] = pointers.values(); return Math.hypot(a.x - b.x, a.y - b.y); };
@@ -387,7 +408,7 @@ export function mountProjectViewer(container, definition) {
   function bindCanvas() {
     canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;outline-offset:-3px';
     canvas.tabIndex = 0; canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', 'Интерактивная 3D-модель. Поверните модель движением пальца или стрелками клавиатуры. Клавиши плюс и минус меняют масштаб.');
+    canvas.setAttribute('aria-label', 'Объёмная модель постройки. Поверните модель движением пальца или стрелками клавиатуры. Клавиши плюс и минус меняют масштаб.');
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
     for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) canvas.addEventListener(event, end);
     canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('keydown', key);
@@ -411,7 +432,7 @@ export function mountProjectViewer(container, definition) {
       delete container.dataset.kwView; container.removeAttribute('data-kw-view-active');
       setAutoRotate(false); disposed = true; cancelAnimationFrame(frame); observer?.disconnect(); visibilityObserver?.disconnect();
       window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', visibility);
-      motion.removeEventListener('change', motionChange); pointers.clear(); engine.dispose(); winter.dispose(); canvas.remove();
+      motion.removeEventListener('change', motionChange); pointers.clear(); engine.dispose(); winter.dispose(); overlay.dispose(); canvas.remove();
     },
   };
 }

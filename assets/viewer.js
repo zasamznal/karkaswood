@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import { seasonalGround } from './seasonal-ground.js';
+import { createPlanOverlay } from './plan-overlay.js';
 
 // The shell follows the advertised footprint. Openings and furnishings illustrate one layout.
 const LENGTH = 5;
@@ -440,7 +441,7 @@ export function mountViewer(container) {
   canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;outline-offset:-3px';
   canvas.tabIndex = 0;
   canvas.setAttribute('role', 'img');
-  canvas.setAttribute('aria-label', '3D-модель барн-модуля. Вращение — движением по горизонтали или стрелками клавиатуры.');
+  canvas.setAttribute('aria-label', 'Объёмная модель барн-модуля. Вращение — движением по горизонтали или стрелками клавиатуры.');
   container.appendChild(canvas);
   scene.add(new THREE.HemisphereLight('#fff8e9', '#b4ae9e', 1.85));
   const sun = new THREE.DirectionalLight('#ffefd8', 2.45);
@@ -455,6 +456,9 @@ export function mountViewer(container) {
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.105, depthWrite: false }));
   ground.rotation.x = -HALF_PI; ground.position.y = -0.005; ground.receiveShadow = true; scene.add(ground);
 
+  const overlay = createPlanOverlay(container, { rooms: [{ name: 'Жилая комната', x: -0.85, z: 0 }], length: LENGTH, width: WIDTH,
+    bounds: { x0: -LENGTH / 2, x1: LENGTH / 2, z0: -WIDTH / 2, z1: WIDTH / 2, y: FLOOR } });
+  let insetTop = 0, insetBottom = 0;
   const modelBounds = new Map();
   for (const g of [model.base, model.roof, ...model.sides, model.plan]) {
     const b = new THREE.Box3().setFromObject(g);
@@ -528,20 +532,27 @@ export function mountViewer(container) {
         minV = Math.min(minV, v); maxV = Math.max(maxV, v);
       }
     }
-    const aspect = w / h;
-    const span = Math.max(maxV - minV, (maxU - minU) / aspect) * 1.23 / zoom;
-    const midU = (maxU + minU) / 2, midV = (maxV + minV) / 2;
+    // Панели управления перекрывают верх и низ сцены. Модель вписывается в свободную часть.
+    const aspect = w / h, free = Math.max(h * .5, h - insetTop - insetBottom);
+    const span = Math.max(maxV - minV, (maxU - minU) / (w / free)) * (planAmount > .5 ? 1.36 : 1.23) / zoom * h / free;
+    const midU = (maxU + minU) / 2, midV = (maxV + minV) / 2 + span * (insetTop - insetBottom) / (2 * h);
     camera.top = midV + span / 2; camera.bottom = midV - span / 2;
     camera.left = midU - span * aspect / 2; camera.right = midU + span * aspect / 2;
     camera.updateProjectionMatrix();
     scene.updateMatrixWorld();
+    sun.shadow.intensity = 1 - .55 * planAmount;
     if (renderer) renderer.render(scene, camera); else fallback.render(camera);
+    overlay.update((x, y, z) => [(x * dz - z * dx - camera.left) / (camera.right - camera.left) * w,
+      (camera.top - ((y - aim) * cp - (x * dx + z * dz) * sp)) / (camera.top - camera.bottom) * h],
+      { rooms: smooth(cut, .55, 1), dims: smooth(planMix, .6, 1) });
     if (auto || opening !== openTarget || planMix !== planTarget || Math.max(Math.abs(turn - yaw), Math.abs(tilt - pitch), Math.abs(aim - targetAim)) > 0.0006) queue();
   }
   function queue() { if (!disposed && !frame && !document.hidden && inViewport) frame = requestAnimationFrame(draw); }
   function resize() {
     const rect = container.getBoundingClientRect();
     w = Math.max(1, Math.round(rect.width)); h = Math.max(1, Math.round(rect.height));
+    const css = getComputedStyle(container);
+    insetTop = parseFloat(css.getPropertyValue('--kw-fit-top')) || 0; insetBottom = parseFloat(css.getPropertyValue('--kw-fit-bottom')) || 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     if (renderer) { renderer.setPixelRatio(dpr); renderer.setSize(w, h, false); }
     else fallback.setSize(w, h, dpr);
@@ -639,7 +650,7 @@ export function mountViewer(container) {
       delete container.dataset.kwView; container.removeAttribute('data-kw-view-active');
       disposed = true; cancelAnimationFrame(frame); observer?.disconnect(); visibilityObserver?.disconnect(); window.removeEventListener('resize', resize);
       motion.removeEventListener('change', motionChange); document.removeEventListener('visibilitychange', visibility);
-      winter.dispose();
+      winter.dispose(); overlay.dispose();
       scene.traverse(o => { if (o.geometry) o.geometry.dispose(); });
       model.materials.forEach(m => m.dispose()); model.grain.dispose(); model.osb.dispose(); model.glazing.dispose();
       sun.shadow.dispose(); ground.material.dispose(); renderer?.dispose(); canvas.remove();

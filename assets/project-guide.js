@@ -29,9 +29,10 @@ const uses = [
 ];
 
 const orderSteps = [
-  ['Обсудите задачу', 'Расскажите Дмитрию о месте на участке, размерах и нужной комплектации.'],
-  ['Запросите расчёт', 'Уточните, что входит в стоимость выбранного варианта и какие работы считают отдельно.'],
-  ['Согласуйте просмотр', 'Спросите, какую постройку можно увидеть вживую, где она находится и когда можно приехать.']
+  ['Расскажите о задаче', 'Напишите или позвоните: какой участок, какие нужны размеры и что должно быть внутри.'],
+  ['Получите расчёт', 'Мастерская посчитает стоимость под вашу комплектацию и отдельно назовёт цену доставки и монтажа.'],
+  ['Заключите договор', 'В договоре закрепляют комплектацию, цену и порядок оплаты.'],
+  ['Примите постройку', 'Готовую постройку привезут и установят на участке.']
 ];
 let serial = 0;
 
@@ -67,14 +68,14 @@ function link(label, className, href) {
   return anchor;
 }
 
-function orderBlock(id) {
+function orderBlock(id, list) {
   const section = el('section', 'pg-order');
   const title = el('h3', 'pg-order-title', 'Как заказать');
   const intro = el('div', 'pg-order-intro');
   title.id = id + '-order';
   section.setAttribute('aria-labelledby', title.id);
   const steps = el('ol', 'pg-steps');
-  for (const [name, note] of orderSteps) {
+  for (const [name, note] of list) {
     const step = el('li');
     step.append(el('h4', '', name), el('p', '', note));
     steps.append(step);
@@ -84,7 +85,7 @@ function orderBlock(id) {
   return section;
 }
 
-export function renderProjectGuide(container, items, {onDetails, onContact, onCategory} = {}) {
+export function renderProjectGuide(container, items, {onDetails, onContact, onCategory, steps} = {}) {
   const id = 'pg-guide-' + (++serial);
   const root = el('div', 'pg-guide');
   const wrap = el('div', 'wrap pg-wrap');
@@ -95,7 +96,11 @@ export function renderProjectGuide(container, items, {onDetails, onContact, onCa
   tabs.setAttribute('role', 'tablist');
   tabs.setAttribute('aria-labelledby', heading.id);
   const panel = el('div', 'pg-panel');
-  const order = orderBlock(id);
+  const ownSteps = (Array.isArray(steps) ? steps : []).map(step => [
+    typeof step?.title === 'string' ? step.title.trim() : '', typeof step?.text === 'string' ? step.text.trim() : ''
+  ]).filter(([name]) => name);
+  const order = orderBlock(id, ownSteps.length ? ownSteps : orderSteps);
+  order.hidden = Array.isArray(steps) && !ownSteps.length;
   panel.id = id + '-panel';
   panel.setAttribute('role', 'tabpanel');
   const entries = (Array.isArray(items) ? items : []).filter(item =>
@@ -164,7 +169,7 @@ export function renderProjectGuide(container, items, {onDetails, onContact, onCa
     const actions = el('div', 'pg-actions');
     if (onDetails) {
       actions.append(button('Посмотреть проект', 'pg-primary', trigger => onDetails(item, trigger, 'details')));
-      if (getTourId(item)) actions.append(button('Открыть в 3D', 'pg-link', trigger => onDetails(item, trigger, 'tour')));
+      if (getTourId(item)) actions.append(button('Открыть модель', 'pg-link', trigger => onDetails(item, trigger, 'tour')));
     } else actions.append(contact(use.discuss, item));
     if (count > 1 && onCategory) actions.append(button(use.other, 'pg-link', trigger => onCategory(use.category, trigger)));
     text.append(actions);
@@ -192,7 +197,7 @@ export function renderProjectGuide(container, items, {onDetails, onContact, onCa
     } else subject = showRequest(use);
     const orderIntro = order.querySelector('.pg-order-intro');
     orderIntro.querySelector('.pg-link')?.remove();
-    orderIntro.append(contact('Обсудить с Дмитрием', subject, 'pg-link'));
+    orderIntro.append(contact('Обсудить с мастерской', subject, 'pg-link'));
   }
 
   for (const [index, use] of uses.entries()) {

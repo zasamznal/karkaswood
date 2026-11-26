@@ -1,0 +1,134 @@
+/* Блоки главной страницы: объявление, название, «О мастерской», конструкция, вопросы, контакты, нижняя панель связи. */
+
+.kw-notice {background:var(--forest);color:#fbf5e4;font-size:.86rem;line-height:1.45;text-align:center}
+.kw-notice p {margin-inline:auto;padding-block:8px}
+[data-kw-season="newyear"] .kw-notice {background:#0c2422;color:#f6dfae;box-shadow:inset 0 -1px 0 #bda36b55}
+
+/* Русское название стоит первым и крупнее латинского: так требует статья 10.1 закона о защите прав потребителей. */
+.brand .brand-text {display:grid;gap:4px;font-size:inherit;line-height:1;letter-spacing:0}
+.brand .brand-ru {font-size:1.5rem;font-weight:700;line-height:1;letter-spacing:-.055em}
+.brand .brand-name {font-size:.6rem;font-weight:600;line-height:1;letter-spacing:.21em;text-transform:uppercase;opacity:.74}
+.brand .brand-ru[hidden] + .brand-name {font-size:1.55rem;font-weight:700;letter-spacing:-.065em;text-transform:none;opacity:1}
+.footer-inner .brand .brand-ru {font-size:1.22rem}
+.footer-inner .brand .brand-name {font-size:.54rem}
+.footer-inner .brand .brand-ru[hidden] + .brand-name {font-size:1.25rem}
+
+.mast-phone {display:none;align-items:center;gap:8px;margin-left:auto;color:inherit;font-size:.95rem;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-decoration:none}
+.mast-phone .icon {width:16px;height:16px;color:var(--copper)}
+.mast-phone:hover {color:var(--copper)}
+[data-kw-season="newyear"] .mast-phone {color:#fbf6e8}
+[data-kw-season="newyear"] .mast-phone .icon {color:var(--kw-winter-gold)}
+[data-kw-season="newyear"] .mast-phone:hover {color:#ffe0a3}
+@media(min-width:1080px){.mast-phone{display:inline-flex}.mast-phone + .mast-contact{margin-left:0}}
+
+.link-button {padding:0;border:0;background:none;color:var(--copper);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.link-button:hover {color:var(--ink)}
+
+/* О мастерской */
+.about {border-bottom:1px solid var(--line);background:#f3f2ea;padding-block:clamp(40px,4.4vw,74px)}
+.about-grid {display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:clamp(28px,5vw,86px);align-items:start}
+.about-title {font-size:clamp(2.3rem,3.5vw,3.7rem);line-height:1.02;max-width:13ch;text-wrap:balance}
+.about-text {margin-top:18px;max-width:46ch;color:var(--muted);font-size:1rem;line-height:1.6;white-space:pre-line}
+.facts-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,2.4vw,36px) clamp(20px,3vw,48px);margin:0;padding:6px 0 0;list-style:none}
+.facts-list li {display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:13px;align-content:start}
+.facts-list .icon {grid-row:1 / span 2;width:26px;height:26px;margin-top:1px;color:var(--copper);stroke-width:1.4}
+.facts-list h3 {font:650 1.04rem/1.3 var(--sans);letter-spacing:-.01em}
+.facts-list p {margin-top:5px;color:var(--muted);font-size:.92rem;line-height:1.52}
+[data-kw-season="newyear"] .about {background:#eaf0ec}
+[data-kw-season="newyear"] .facts-list .icon {color:#a57c3d}
+
+/* Конструкция */
+.materials {background:#efefe7;border-top:1px solid var(--line);padding-block:clamp(50px,5.2vw,90px)}
+.materials-grid {display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:clamp(28px,5vw,86px);align-items:start}
+.materials .aside-text {margin-top:16px;max-width:330px}
+.wall-figure {margin:26px 0 0;max-width:390px}
+.wall-diagram {display:block;width:100%;height:auto;overflow:visible}
+.wall-diagram text {fill:#4d584e;font:500 11.5px/1 var(--sans)}
+.wall-diagram .wall-size {fill:#30392f;font-weight:650;font-size:12.5px}
+.wall-figure figcaption {margin-top:6px;color:var(--muted);font-size:.8rem}
+.materials-list {margin:0}
+.materials .specs>div {grid-template-columns:minmax(120px,.5fr) 1.5fr}
+.materials .specs dd {font-weight:500;line-height:1.5}
+.materials .specs dt {font-weight:600;color:var(--ink)}
+[data-kw-season="newyear"] .materials {background:#e7eee9}
+
+/* Вопросы и ответы */
+.faq-list {border-top:1px solid var(--line);max-width:1080px}
+.faq-item {border-bottom:1px solid var(--line)}
+.faq-item summary {display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:64px;padding:16px 2px;cursor:pointer;list-style:none;font:600 clamp(1.04rem,1.35vw,1.2rem)/1.35 var(--sans);letter-spacing:-.01em}
+.faq-item summary::-webkit-details-marker {display:none}
+.faq-item summary .icon {flex:none;width:32px;height:32px;padding:7px;border:1px solid #c6cdbf;border-radius:50%;color:var(--forest);transition:transform .2s ease-out,background-color .2s,color .2s}
+.faq-item[open] summary .icon {transform:rotate(45deg);background:var(--forest);border-color:var(--forest);color:#fff}
+.faq-item summary:hover {color:var(--copper)}
+.faq-item summary:focus-visible {outline-offset:-3px}
+.faq-answer {max-width:74ch;padding:0 54px 22px 2px;color:var(--muted);font-size:.98rem;line-height:1.62;white-space:pre-line}
+[data-kw-season="newyear"] .faq-item summary .icon {border-color:#b9c7bd}
+[data-kw-season="newyear"] .faq-item[open] summary .icon {background:#184438;border-color:#184438;color:#f6dfae}
+
+/* Контакты */
+.visit-lead {max-width:470px}
+.visit-facts {display:grid;gap:11px;margin:26px 0 0;max-width:520px}
+.visit-facts:empty {display:none}
+.visit-facts>div {display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;align-items:start;color:#e6eadd;font-size:.95rem;line-height:1.5}
+.visit-facts .icon {width:18px;height:18px;margin-top:2px;color:#dac198}
+.visit-facts dt {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.visit-facts a {color:inherit;text-underline-offset:4px}
+.visit .visit-actions {align-items:stretch;gap:10px;width:min(100%,330px)}
+.visit-call span {font-variant-numeric:tabular-nums;font-size:1.02rem}
+.btn-ghost {border:1px solid #ffffff5c;background:transparent;color:#faf6e8;transition:background .18s,border-color .18s}
+.btn-ghost:hover {background:#ffffff14;border-color:#fff}
+.visit-links {display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center;padding-top:6px}
+.visit-links:empty {display:none}
+.visit-links a {display:inline-flex;align-items:center;gap:5px;min-height:36px;color:#e6eadd;font-size:.88rem;text-underline-offset:4px}
+.visit-links .icon {width:14px;height:14px}
+[data-kw-season="newyear"] .visit-facts .icon {color:#ead098}
+[data-kw-season="newyear"] .btn-ghost {border-color:#e1c78e8a;color:#fff9e6}
+
+/* Подвал */
+.footer-legal {display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 40px;align-items:start}
+.footer-legal nav {display:flex;flex-wrap:wrap;gap:8px 24px}
+.footer-note {max-width:74ch;justify-self:end;color:var(--muted);font-size:.78rem;line-height:1.5}
+
+/* Нижняя панель связи на телефонах */
+.kw-dock {display:none}
+@media(max-width:720px){
+  .kw-dock:not([hidden]) {position:fixed;z-index:21;inset:auto 0 0;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px max(12px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:#f9f8f3f2;border-top:1px solid var(--line);box-shadow:0 -8px 22px #16221b14;backdrop-filter:blur(8px);transition:transform .22s ease-out}
+  .kw-dock[data-away] {transform:translateY(110%)}
+  .kw-dock :is(a,button) {display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border-radius:5px;font:600 .92rem/1.2 var(--sans);text-decoration:none}
+  .kw-dock .icon {width:17px;height:17px}
+  .kw-dock-call {border:1px solid #c4c9bc;color:var(--ink);background:#fffefa}
+  .kw-dock-write {border:1px solid #aa4d2d;background:#aa4d2d;color:#fff}
+  html.kw-has-dock body {padding-bottom:calc(63px + env(safe-area-inset-bottom))}
+  html.kw-has-dock .kwcmp-dock {bottom:calc(73px + env(safe-area-inset-bottom))}
+  html.kw-has-dock .kwcmp-notice {bottom:calc(132px + env(safe-area-inset-bottom))}
+  [data-kw-season="newyear"] .kw-dock:not([hidden]) {background:#102c2af2;border-color:#bda36b80}
+  [data-kw-season="newyear"] .kw-dock-call {background:transparent;border-color:#829084;color:#fbf6e8}
+  [data-kw-season="newyear"] .kw-dock-write {background:#e6c58b;border-color:#e6c58b;color:#19312a}
+}
+body:has(dialog[open]) .kw-dock {display:none}
+
+@media(max-width:900px){
+  .about-grid,.materials-grid {grid-template-columns:minmax(0,1fr);gap:26px}
+  .about-title {max-width:none}
+  .wall-figure {max-width:340px}
+  .footer-legal {grid-template-columns:minmax(0,1fr)}
+  .footer-note {justify-self:start}
+}
+@media(max-width:720px){
+  .brand .brand-ru {font-size:1.28rem}
+  .brand .brand-name {font-size:.52rem;letter-spacing:.19em}
+  .brand .brand-ru[hidden] + .brand-name {font-size:1.33rem}
+  .about,.materials {padding-block:40px}
+  .about-title {font-size:clamp(2.1rem,7.4vw,2.9rem)}
+  .faq-answer {padding-right:8px}
+  .visit .visit-actions {width:100%;max-width:380px}
+  .visit-links {justify-content:flex-start}
+}
+@media(max-width:540px){
+  .facts-list {grid-template-columns:minmax(0,1fr);gap:18px}
+  .materials .specs>div {grid-template-columns:minmax(0,1fr);gap:3px;padding:13px 0}
+  .faq-item summary {min-height:58px;padding-block:13px}
+  .faq-item summary .icon {width:29px;height:29px;padding:6px}
+}
+@media(prefers-reduced-motion:reduce){.kw-dock,.faq-item summary .icon{transition:none}}
+@media print {.kw-dock,.kw-notice{display:none!important}}

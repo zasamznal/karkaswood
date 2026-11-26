@@ -1,5 +1,6 @@
 import { tourTemplates } from '../assets/tour-registry.js';
-import { getOffer } from '../assets/project-offers.js';
+import { getOffer, publishedOffer } from '../assets/project-offers.js';
+import { BADGES, LIMITS } from '../assets/site-defaults.js';
 import { getProjectCover } from '../assets/project-covers.js';
 
 const categories = new Map([
@@ -130,7 +131,7 @@ async function compressPhoto(file) {
   }
 }
 
-export function mountItems(container, { items = [], onChange } = {}) {
+export function mountItems(container, { items = [], onChange, extended = true } = {}) {
   if (!Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(link => link.href === cssUrl)) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -190,7 +191,7 @@ export function mountItems(container, { items = [], onChange } = {}) {
         <div class="kwitems-edit-fields">
           <div class="kwitems-tabs" role="tablist" aria-label="Разделы карточки">
             <button type="button" role="tab" aria-selected="true" data-kw-tab="main">О постройке</button>
-            <button type="button" role="tab" aria-selected="false" data-kw-tab="media" tabindex="-1">Фото и 3D</button>
+            <button type="button" role="tab" aria-selected="false" data-kw-tab="media" tabindex="-1">Фото и модель</button>
           </div>
           <div role="tabpanel" data-kw-page="main" class="kwitems-fields">
             <label class="kwitems-field kwitems-wide">Название<input name="name" type="text" required maxlength="120" placeholder="Например, Барн-модуль"></label>
@@ -199,6 +200,10 @@ export function mountItems(container, { items = [], onChange } = {}) {
             <div class="kwitems-field kwitems-wide"><label>Актуальная цена, ₽<input name="price" type="number" inputmode="numeric" min="1" step="1" aria-describedby="kw-price-help" placeholder="По запросу"></label><small id="kw-price-help">Введите стоимость в рублях целым числом. Оставьте поле пустым, если цену нужно уточнить у мастерской.</small></div>
             <div class="kwitems-field kwitems-wide"><label>Что входит в стоимость<textarea name="offerNote" rows="2" maxlength="500" aria-describedby="kw-offer-help" placeholder="Например, утепление и электрика входят, доставка рассчитывается отдельно"></textarea></label><small id="kw-offer-help">Укажите комплектацию проекта и дополнительные расходы, если условия известны.</small></div>
             <details class="kwitems-reference kwitems-wide" hidden><summary>Цена и комплектация из публикации</summary><div class="kwitems-reference-body"></div></details>
+            <p class="kwitems-lock kwitems-wide" hidden>Поля ниже откроются после обновления сервера сайта. Подробности — в разделе «Помощь».</p>
+            <div class="kwitems-field kwitems-wide" data-kw-extended><label>Комплектация: что входит<textarea name="included" rows="4" maxlength="2200" aria-describedby="kw-included-help" placeholder="Каждый пункт с новой строки"></textarea></label><small id="kw-included-help">До 10 пунктов, каждый с новой строки. Покупатель увидит их списком в карточке.</small></div>
+            <div class="kwitems-field kwitems-wide" data-kw-extended><label>Что уточнить при заказе<textarea name="clarify" rows="2" maxlength="400" placeholder="Например: доставка и монтаж рассчитываются отдельно"></textarea></label></div>
+            <label class="kwitems-field" data-kw-extended>Отметка на фото<select name="badge"></select></label>
             <label class="kwitems-field kwitems-wide">Описание<textarea name="summary" rows="3" maxlength="1200" placeholder="Материалы, планировка, особенности проекта"></textarea></label>
             <label class="kwitems-publish kwitems-wide"><input name="published" type="checkbox">Показывать в каталоге</label>
           </div>
@@ -209,13 +214,17 @@ export function mountItems(container, { items = [], onChange } = {}) {
               <label class="kwitems-field">Ссылка на фото<input name="photo" type="text" maxlength="2048" placeholder="https://…"></label>
               <label class="kwitems-field">Ссылка на публикацию<input name="source" type="url" maxlength="2048" placeholder="https://t.me/…"></label>
             </details>
-            <label class="kwitems-field kwitems-wide">3D-модель<select name="tourId"></select><small>Выберите модель, только если постройка ей соответствует.</small></label>
+            <div class="kwitems-field kwitems-wide" data-kw-extended><span class="kwitems-label">Дополнительные фотографии</span>
+              <ul class="kwitems-gallery" aria-label="Дополнительные фотографии"></ul>
+              <label class="kwitems-gallery-add"><input name="galleryUpload" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple><span>Добавить фотографии</span></label>
+              <small>До 6 снимков: интерьер, другие ракурсы, детали. Можно выбрать сразу несколько.</small><span class="kwitems-gallery-status" role="status"></span></div>
+            <label class="kwitems-field kwitems-wide">Объёмная модель<select name="tourId"></select><small>Выберите модель, только если постройка ей соответствует.</small></label>
           </div>
         </div>
         <details class="kwitems-live">
           <summary>Предпросмотр карточки</summary>
           <div class="kwitems-card-preview">
-            <div class="kwitems-card-image"><div class="kwitems-preview"></div><span class="kwitems-live-tour" hidden>Обзор в 3D</span></div>
+            <div class="kwitems-card-image"><div class="kwitems-preview"></div><span class="kwitems-live-tour" hidden>Есть модель</span></div>
             <div class="kwitems-card-copy">
               <div class="kwitems-live-meta"><span data-kw-live="category"></span><span data-kw-live="dimensions"></span></div>
               <h4 data-kw-live="name"></h4><strong data-kw-live="price"></strong><p class="kwitems-offer-note" data-kw-live="offerNote" hidden></p>
@@ -227,13 +236,71 @@ export function mountItems(container, { items = [], onChange } = {}) {
       <div class="kwitems-form-actions"><button class="kwitems-primary" type="submit">Сохранить карточку</button><button type="button" class="kwitems-cancel">Отмена</button></div>`;
     const original = item || {};
     const fields = form.elements;
-    const context = { task: 0, dirty: false, photo: original.photo || '', busy: false, opener: document.activeElement };
+    const context = { task: 0, dirty: false, photo: original.photo || '', busy: false, opener: document.activeElement,
+      gallery: Array.isArray(original.gallery) ? original.gallery.filter(photo => typeof photo === 'string' && photo) : [] };
     editor = context;
     status.textContent = '';
     form.querySelector('h3').textContent = item ? 'Редактирование карточки' : 'Новая карточка';
     options(fields.category);
     const inheritedTour = tourNames.has(original.id) ? original.id : '';
-    fields.tourId.add(new Option('Без 3D-модели', 'none'));
+    fields.tourId.add(new Option('Без модели', 'none'));
+    fields.badge.add(new Option('Без отметки', ''));
+    for (const [value, label] of Object.entries(BADGES)) fields.badge.add(new Option(label, value));
+    fields.badge.value = Object.hasOwn(BADGES, original.badge) ? original.badge : '';
+    // Комплектация из публикации мастерской показывается как отправная точка. В карточку она попадёт, только если её изменить.
+    const inherited = publishedOffer(original);
+    const startIncluded = (Array.isArray(original.included) ? original.included : inherited?.included || []).join('\n');
+    const startClarify = typeof original.clarify === 'string' ? original.clarify : inherited?.clarify?.[0] || '';
+    fields.included.value = startIncluded;
+    fields.clarify.value = startClarify;
+    form.querySelector('.kwitems-lock').hidden = extended;
+    for (const node of form.querySelectorAll('[data-kw-extended]')) {
+      node.classList.toggle('kwitems-locked', !extended);
+      for (const control of node.querySelectorAll('input,textarea,select')) control.disabled = !extended;
+    }
+    const galleryList = form.querySelector('.kwitems-gallery');
+    const galleryStatus = form.querySelector('.kwitems-gallery-status');
+    function renderGallery() {
+      galleryList.replaceChildren(...context.gallery.map((photo, index) => {
+        const row = element('li');
+        const img = element('img');
+        img.alt = 'Фото ' + (index + 2); img.src = photoUrl(photo) || '';
+        img.addEventListener('error', () => { img.replaceWith(element('span', 'kwitems-gallery-missing', 'Нет фото')); }, { once: true });
+        const drop = button('Убрать', 'kwitems-gallery-remove');
+        drop.setAttribute('aria-label', 'Убрать фото ' + (index + 2));
+        drop.disabled = !extended;
+        drop.addEventListener('click', () => {
+          context.gallery.splice(index, 1); context.dirty = true; renderGallery();
+          galleryStatus.textContent = 'Фото убрано.';
+          (galleryList.querySelectorAll('.kwitems-gallery-remove')[Math.min(index, context.gallery.length - 1)] || fields.galleryUpload).focus();
+        });
+        row.append(img, drop);
+        return row;
+      }));
+      fields.galleryUpload.disabled = !extended || context.gallery.length >= LIMITS.gallery;
+      fields.galleryUpload.closest('label').classList.toggle('is-disabled', fields.galleryUpload.disabled);
+    }
+    renderGallery();
+    fields.galleryUpload.addEventListener('change', async () => {
+      const files = Array.from(fields.galleryUpload.files).slice(0, LIMITS.gallery - context.gallery.length);
+      if (!files.length) return;
+      const task = ++context.galleryTask || (context.galleryTask = 1);
+      setBusy(true);
+      let added = 0, failed = 0;
+      for (const file of files) {
+        galleryStatus.textContent = 'Подготавливаем фото ' + (added + failed + 1) + ' из ' + files.length + '…';
+        try {
+          const value = await compressPhoto(file);
+          if (editor !== context || task !== context.galleryTask) return;
+          context.gallery.push(value); added++;
+        } catch { failed++; }
+      }
+      if (editor !== context || task !== context.galleryTask) return;
+      fields.galleryUpload.value = '';
+      context.dirty = context.dirty || added > 0;
+      setBusy(false); renderGallery();
+      galleryStatus.textContent = (added ? 'Добавлено фото: ' + added + '.' : '') + (failed ? ' Не удалось открыть: ' + failed + '.' : '');
+    });
     for (const [id, name] of tourNames) fields.tourId.add(new Option(name, id));
     const initialTour = original.tourId === 'none' ? 'none' : original.tourId || inheritedTour;
     fields.tourId.value = tourNames.has(initialTour) ? initialTour : 'none';
@@ -431,6 +498,14 @@ export function mountItems(container, { items = [], onChange } = {}) {
         source,
         published: fields.published.checked,
       };
+      if (extended) {
+        const included = fields.included.value.split('\n').map(line => line.trim().slice(0, LIMITS.includedText)).filter(Boolean).slice(0, LIMITS.included);
+        if (fields.included.value !== startIncluded || Array.isArray(original.included)) result.included = included;
+        const clarify = fields.clarify.value.trim();
+        if (fields.clarify.value !== startClarify || typeof original.clarify === 'string') result.clarify = clarify;
+        if (fields.badge.value) result.badge = fields.badge.value; else delete result.badge;
+        if (context.gallery.length) result.gallery = [...context.gallery]; else delete result.gallery;
+      }
       const selectedTour = fields.tourId.value;
       const offerNote = fields.offerNote.value.trim();
       if (offerNote) result.offerNote = offerNote;

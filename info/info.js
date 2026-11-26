@@ -1,5 +1,8 @@
 import { getPreviewDraft, loadPublicSite } from '../assets/site-data.js';
 import { applySeason } from '../assets/season.js';
+import { resolveTheme } from '../assets/site-defaults.js';
+import { getChannels } from '../assets/channels.js';
+import { brandNames, sellerLine } from '../assets/sections.js';
 
 const forms = {
   ip: 'Индивидуальный предприниматель',
@@ -7,13 +10,6 @@ const forms = {
   npd: 'Плательщик налога на профессиональный доход',
 };
 const clean = value => typeof value === 'string' ? value.trim() : '';
-
-function telegramUrl(value) {
-  const match = /^https:\/\/t\.me\/([a-z][a-z\d_]{3,30}[a-z\d])\/?$/i.exec(clean(value));
-  if (!match) return null;
-  const reserved = new Set(['addlist','addstickers','boost','contact','invoice','joinchat','login','proxy','share','socks']);
-  return reserved.has(match[1].toLowerCase()) ? null : new URL('https://t.me/' + match[1]);
-}
 
 function link(label, href, external = false) {
   const anchor = document.createElement('a');
@@ -38,17 +34,13 @@ function row(list, label, content) {
   list.hidden = false;
 }
 
-function validEmail(value) {
-  return value.length <= 254 && /^[^\s@?&#%<>]+@[^\s@?&#%<>]+\.[^\s@?&#%<>]+$/u.test(value);
-}
-
 function render(settings) {
   const legal = settings.legal || {};
-  const brand = clean(settings.brand);
-  if (brand) {
-    document.title = 'Информация для покупателей — ' + brand;
-    document.querySelectorAll('[data-brand]').forEach(node => { node.textContent = brand; });
-  }
+  const channels = getChannels(settings);
+  const names = brandNames(settings);
+  document.title = 'Информация для покупателей — ' + names.primary;
+  document.querySelectorAll('[data-brand-ru]').forEach(node => { node.textContent = names.russian; node.hidden = !names.russian; });
+  document.querySelectorAll('[data-brand]').forEach(node => { node.textContent = names.brand; node.hidden = names.russian === names.brand; });
 
   const legalList = document.getElementById('legal-details');
   const form = Object.hasOwn(forms, legal.form) ? legal.form : '';
@@ -60,45 +52,57 @@ function render(settings) {
   }
   if (form !== 'npd') row(legalList, 'Регистрирующий орган', clean(legal.regAuthority));
   row(legalList, 'Адрес для обращений', clean(legal.address));
+  document.getElementById('legal-empty').hidden = legalList.childElementCount > 0;
   const owner = document.getElementById('owner-details');
   row(owner, 'Наименование или ФИО', clean(legal.ownerName));
   row(owner, 'Адрес владельца', clean(legal.ownerAddress));
   const ownerEmail = clean(legal.ownerEmail);
-  if (validEmail(ownerEmail)) row(owner, 'Почта для обращений, в том числе от правообладателей', link(ownerEmail, 'mailto:' + ownerEmail));
+  if (/^[^\s@?&#%<>]+@[^\s@?&#%<>]+\.[^\s@?&#%<>]+$/u.test(ownerEmail)) row(owner, 'Почта для обращений, в том числе от правообладателей', link(ownerEmail, 'mailto:' + ownerEmail));
   document.getElementById('ownership').hidden = owner.childElementCount === 0;
 
   const contacts = document.getElementById('contacts');
+  if (channels.contactName) row(contacts, 'Контактное лицо', channels.contactName);
   row(contacts, 'Место просмотра', clean(settings.location));
-  row(contacts, 'Режим работы', clean(legal.hours));
-  const phone = clean(settings.phone);
-  if (/^\+[1-9]\d{6,14}$/.test(phone)) {
-    const display = phone.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4');
-    row(contacts, 'Телефон', link(display, 'tel:' + phone));
-  }
-  const email = clean(legal.email);
-  const emailSafe = validEmail(email);
-  if (emailSafe) row(contacts, 'Электронная почта', link(email, 'mailto:' + email));
-  const chat = telegramUrl(settings.telegram);
-  const channel = telegramUrl(settings.channel);
-  if (chat) row(contacts, 'Telegram', link('@' + chat.pathname.slice(1), chat.href, true));
-  if (channel) row(contacts, 'Канал мастерской', link('@' + channel.pathname.slice(1), channel.href, true));
+  row(contacts, 'Режим работы', channels.hours);
+  if (channels.phone) row(contacts, 'Телефон', link(channels.phoneLabel, 'tel:' + channels.phone));
+  if (channels.email) row(contacts, 'Электронная почта', link(channels.email, 'mailto:' + channels.email));
+  if (channels.telegram) row(contacts, 'Telegram', link('@' + channels.telegram.pathname.slice(1), channels.telegram.href, true));
+  if (channels.max) row(contacts, 'MAX', link('Написать в MAX', channels.max.href, true));
+  if (channels.whatsapp) row(contacts, 'WhatsApp', link(channels.phoneLabel && channels.whatsapp.pathname.slice(1) === channels.phone.slice(1) ? channels.phoneLabel : '+' + channels.whatsapp.pathname.slice(1), channels.whatsapp.href, true));
+  if (channels.vk) row(contacts, 'ВКонтакте', link('Страница мастерской', channels.vk.href, true));
+  if (channels.channel) row(contacts, 'Канал мастерской', link('@' + channels.channel.pathname.slice(1), channels.channel.href, true));
+  if (channels.mapUrl) row(contacts, 'На карте', link('Открыть карту', channels.mapUrl.href, true));
   const status = document.getElementById('load-status');
   if (contacts.childElementCount) status.hidden = true;
   else status.textContent = 'Контакты мастерской пока не опубликованы.';
 
   const request = document.getElementById('requisites-request');
-  if (chat) {
-    chat.searchParams.set('text', 'Здравствуйте! Пришлите, пожалуйста, карточку предприятия с реквизитами для договора.');
+  const question = 'Здравствуйте! Пришлите, пожалуйста, карточку с реквизитами для договора.';
+  if (channels.telegram) {
+    const chat = new URL(channels.telegram);
+    chat.searchParams.set('text', question);
     request.href = chat.href;
     request.target = '_blank';
     request.rel = 'noopener noreferrer';
-  } else if (emailSafe) {
-    request.href = 'mailto:' + email + '?subject=' + encodeURIComponent('Запрос реквизитов');
-  } else if (/^\+[1-9]\d{6,14}$/.test(phone)) {
-    request.href = 'tel:' + phone;
+  } else if (channels.email) {
+    request.href = 'mailto:' + channels.email + '?subject=' + encodeURIComponent('Запрос реквизитов');
+  } else if (channels.phone) {
+    request.href = 'tel:' + channels.phone;
   } else {
     request.parentElement.hidden = true;
   }
+
+  // Оператор в политике и строка о продавце в подвале
+  const seller = sellerLine(legal);
+  if (seller) {
+    const operator = document.getElementById('operator-line');
+    const pieces = ['Оператор персональных данных — ' + seller.replace(/\.$/, '') + ' (далее — мастерская).'];
+    if (clean(legal.address)) pieces.push('Адрес для обращений: ' + clean(legal.address) + '.');
+    if (channels.email) pieces.push('Электронная почта: ' + channels.email + '.');
+    if (channels.phone) pieces.push('Телефон: ' + channels.phoneLabel + '.');
+    operator.textContent = pieces.join(' ');
+  }
+  document.getElementById('footer-owner').textContent = '© ' + new Date().getFullYear() + ' ' + names.primary + '.' + (seller ? ' ' + seller : '');
 }
 
 function updateAnchor() {
@@ -116,7 +120,7 @@ const requestedSeason = params.get('season');
 const seasonOverride = ['classic', 'newyear'].includes(requestedSeason) ? requestedSeason : null;
 const draft = getPreviewDraft();
 if (draft) document.getElementById('draft').hidden = false;
-if (seasonOverride || draft) applySeason(draft ? draft.settings.theme : seasonOverride);
+if (seasonOverride || draft) applySeason(draft ? resolveTheme(draft.settings) : seasonOverride);
 if (wantsDraft || seasonOverride) {
   for (const anchor of document.querySelectorAll('[data-main]')) {
     const url = new URL(anchor.href);
@@ -127,7 +131,7 @@ if (wantsDraft || seasonOverride) {
 }
 try {
   const {settings} = draft || await loadPublicSite();
-  applySeason(draft ? settings.theme : (seasonOverride || settings.theme));
+  applySeason(draft ? resolveTheme(settings) : (seasonOverride || resolveTheme(settings)));
   render(settings);
 } catch {
   document.getElementById('load-status').textContent = 'Не удалось загрузить контакты. Попробуйте обновить страницу.';

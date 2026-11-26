@@ -121,7 +121,7 @@ export function mountFeaturedProject(section, items, options = {}) {
     }
     const barn = getTourId(active) === BARN;
     section.dataset.featuredProject = active.id;
-    heading.textContent = (active.name || 'Проект мастерской') + ' в 3D';
+    heading.textContent = 'Модель: ' + (active.name || 'проект мастерской');
     picker.value = active.id; metrics.hidden = !barn; expand.hidden = barn;
     const dimensions = typeof active.dimensions === 'string' ? active.dimensions.trim() : '';
     const description = typeof active.summary === 'string' ? active.summary.trim() : '';

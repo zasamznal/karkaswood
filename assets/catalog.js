@@ -2,6 +2,7 @@ import { getTourId } from './tour-registry.js';
 import { getOffer } from './project-offers.js';
 import { getProjectPhotos } from './workshop-photos.js';
 import { getProjectCover } from './project-covers.js';
+import { BADGES } from './site-defaults.js';
 
 const categories = [
   ['all', 'Все'],
@@ -97,6 +98,7 @@ function image(src,name) {
 
 function cardVisual(item,original) {
   const visual = element('span','kc-visual');
+  if (Object.hasOwn(BADGES,item.badge)) visual.append(element('span','kc-badge kc-badge-'+item.badge,BADGES[item.badge]));
   const cover = getProjectCover(item);
   const custom = photoURL(cover?.src);
   if (!custom && !original) {
@@ -115,7 +117,7 @@ function cardVisual(item,original) {
       frame(originalFraming.get(original));
       img.alt = originalAlt;
       img.src = original;
-    } else visual.replaceChildren(icon('house'));
+    } else img.replaceWith(icon('house'));
   });
   visual.append(img);
   return visual;
@@ -329,7 +331,9 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
     const description = element('div','kc-description');
     const heading = element('h3','kc-detail-title',item.name);
     heading.id = key+'-title';
-    description.append(element('p','kc-kind',categoryNames.get(item.category)),heading);
+    const kind = element('p','kc-kind',categoryNames.get(item.category));
+    if (Object.hasOwn(BADGES,item.badge)) kind.append(element('span','kc-badge kc-badge-'+item.badge,BADGES[item.badge]));
+    description.append(kind,heading);
     if (item.summary) description.append(element('p','kc-summary',item.summary));
     const facts = element('dl','kc-facts');
     if (item.dimensions) facts.append(element('dt','','Габариты'),element('dd','',item.dimensions));
@@ -364,8 +368,8 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
 
   function tourLink(item, opener) {
     const embedded = getTourId(item) === 'barn-2-4-5';
-    const link = element(embedded ? 'a' : 'button','kc-tour','Смотреть в 3D');
-    link.setAttribute('aria-label','Смотреть в 3D: '+item.name);
+    const link = element(embedded ? 'a' : 'button','kc-tour','Объёмная модель');
+    link.setAttribute('aria-label','Открыть объёмную модель: '+item.name);
     if (embedded) link.href = '#viewer';
     else {
       link.type = 'button';
@@ -425,7 +429,7 @@ export function mountCatalog(container, items, {onContact, onTour, onCompare, on
     const text = element('div');
     if (category === 'house') {
       text.append(element('h3','','Какой дом вы хотите построить?'),
-        element('p','','Расскажите Дмитрию о желаемых размерах и планировке дома.'));
+        element('p','','Расскажите мастерской о желаемых размерах и планировке дома.'));
       box.append(text,contactButton(houseRequest,'Обсудить проект дома'));
     } else {
       text.append(element('h3','','Пока нет опубликованных моделей'));

@@ -11,6 +11,8 @@ import { applySeason } from './season.js';
 import { getTourId } from './tour-registry.js';
 import { openProjectTour } from './project-dialog.js';
 import { getPreviewDraft, loadPublicSite } from './site-data.js';
+import { renderSections } from './sections.js';
+import { resolveTheme } from './site-defaults.js';
 
 const pageParameters = new URLSearchParams(location.search);
 const seasonalPreview = pageParameters.get('season');
@@ -24,28 +26,11 @@ function syncIdentity(settings) {
   const text = (selector, value) => {
     if (typeof value === 'string') document.querySelectorAll(selector).forEach(node => { node.textContent = value; });
   };
-  text('.brand span', settings.brand);
   text('#hero-title', settings.heading);
   text('.hero-intro', settings.intro);
   text('[data-location]', settings.location);
   text('[data-location-short]', settings.location?.split(',')[0]);
-  if (settings.brand && settings.heading) document.title = settings.brand + ' — ' + settings.heading;
-  document.querySelectorAll('.brand').forEach(el => el.setAttribute('aria-label', (settings.brand || 'Мастерская') + ', в начало'));
-  const channel = document.querySelector('[data-channel]');
-  channel.hidden = !/^https:\/\/t\.me\/[A-Za-z0-9_]+$/.test(settings.channel);
-  if (!channel.hidden) channel.href = settings.channel;
-  const phone = document.querySelector('.visit-phone');
-  phone.hidden = !/^\+[1-9]\d{6,14}$/.test(settings.phone);
-  if (!phone.hidden) {
-    phone.href = 'tel:' + settings.phone;
-    phone.textContent = settings.phone.replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 $1 $2-$3-$4');
-  }
-  document.querySelectorAll('a[data-contact]').forEach(el => {
-    const telegram = /^https:\/\/t\.me\/[A-Za-z0-9_]+$/.test(settings.telegram);
-    if (telegram) el.href = settings.telegram;
-    else if (!phone.hidden) el.href = phone.href;
-    else el.hidden = true;
-  });
+  return renderSections(settings);
 }
 
 
@@ -77,7 +62,7 @@ async function preparePage() {
   document.querySelector('#preview-status').hidden = !draft;
   const {settings, items} = snapshot;
   syncIdentity(settings);
-  applySeason(!draft && ['classic','newyear'].includes(seasonalPreview) ? seasonalPreview : settings.theme);
+  applySeason(!draft && ['classic','newyear'].includes(seasonalPreview) ? seasonalPreview : resolveTheme(settings));
   const explicitSeason = ['classic','newyear'].includes(seasonalPreview);
   if (draft || explicitSeason) {
     document.querySelectorAll('.footer-legal a').forEach(link => {
@@ -142,7 +127,7 @@ async function preparePage() {
       if (mode === 'tour') openTour(item, trigger);
       else catalog.openItem(item, trigger);
     },
-    onContact:askAbout,
+    onContact:askAbout, steps:settings.extra?.steps,
     onCategory(category) {
       if (!catalog.setFilter(category)) return;
       location.hash = 'catalog';
@@ -189,12 +174,12 @@ async function preparePage() {
     }
   }
   // A direct link to the tour can arrive while the catalogue above it is loading.
-  const target = ['#catalog', '#project-guide', '#viewer', '#fit', '#gallery', '#about', '#visit'].includes(location.hash) && document.querySelector(location.hash);
+  const target = ['#catalog', '#project-guide', '#viewer', '#fit', '#gallery', '#about', '#materials', '#faq', '#visit'].includes(location.hash) && document.querySelector(location.hash);
   if (target && !target.hidden && window.scrollY < target.offsetTop + 15) target.scrollIntoView({behavior:'instant'});
 }
 preparePage().catch(() => {
   const area = document.querySelector('#product-catalog');
-  area.innerHTML = '<p>Каталог временно не загрузился. <a href="https://t.me/karkaswoodstroy">Посмотреть работы в Telegram</a></p>';
+  area.innerHTML = '<p>Каталог временно не загрузился. Позвоните в мастерскую: <a href="tel:+79935031990">+7 993 503-19-90</a> или <a href="https://t.me/karkaswoodstroy">посмотрите работы в Telegram</a>.</p>';
   mountContact();
 });
 

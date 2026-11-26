@@ -87,3 +87,13 @@ footer{border-top:1px solid var(--line)}
   [data-kw-season="newyear"] .sections section{padding:19px 15px}
   [data-kw-season="newyear"] .intro p{margin-top:13px}
 }
+
+.wordmark-text{display:grid;gap:3px;line-height:1}
+.wordmark-text small{font-size:.58rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;opacity:.74}
+.wordmark-text [data-brand-ru][hidden]+small{font-size:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:none;opacity:1}
+.callout{margin-top:19px;padding:13px 16px;border-left:3px solid var(--accent);background:#edece1;color:var(--ink)}
+.sections section>p+p{margin-top:10px}
+#footer-owner{flex:1;text-align:center}
+[data-kw-season="newyear"] .callout{background:#eef0e3}
+[data-kw-season="newyear"] footer .muted{color:#d9dcc6}
+@media(max-width:720px){#footer-owner{flex-basis:100%;order:3;text-align:left}.footer-inner{flex-wrap:wrap;padding-block:12px}}

@@ -184,3 +184,20 @@
   .kwitems-root .kwitems-form {padding:13px}
   .kwitems-field input,.kwitems-field select,.kwitems-field textarea {font-size:16px}
 }
+
+.kwitems-label{display:block;font-weight:600}
+.kwitems-lock{margin:0;padding:10px 13px;border:1px solid #dcc9a2;border-radius:6px;background:#fbf3df;color:#5b4720;font-size:.84rem;line-height:1.5}
+.kwitems-locked{opacity:.62}
+.kwitems-locked :is(textarea,select,input){cursor:not-allowed}
+.kwitems-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:9px;margin:8px 0 10px;padding:0;list-style:none}
+.kwitems-gallery:empty{display:none}
+.kwitems-gallery li{display:grid;gap:5px;min-width:0}
+.kwitems-gallery img,.kwitems-gallery-missing{display:grid;place-items:center;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;background:#e7ebdf;color:#697460;font-size:.76rem}
+.kwitems-gallery-remove{min-height:34px;padding:4px 8px;border:1px solid #e2cfc6;border-radius:4px;background:#fff;color:#93402c;font-size:.78rem;font-weight:600}
+.kwitems-gallery-remove:hover{background:#f8ede7}
+.kwitems-gallery-add{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 15px;border:1px dashed #9fae9a;border-radius:5px;color:#2c4934;font-weight:600;font-size:.88rem;cursor:pointer;width:fit-content}
+.kwitems-gallery-add:hover{background:#e7eee0}
+.kwitems-gallery-add input{position:absolute;width:1px;height:1px;opacity:0}
+.kwitems-gallery-add:focus-within{outline:3px solid #b76846;outline-offset:3px}
+.kwitems-gallery-add.is-disabled{opacity:.5;cursor:not-allowed}
+.kwitems-gallery-status{display:block;margin-top:5px;color:#536152;font-size:.8rem}

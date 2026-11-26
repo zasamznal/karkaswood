@@ -120,7 +120,7 @@
   border-top: 1px solid var(--pg-rule);
 }
 .pg-order-title { margin: 0; font: 600 clamp(1.9rem, 2.8vw, 3rem)/1 var(--serif); letter-spacing: -.035em; }
-.pg-steps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: clamp(17px, 2.2vw, 33px); padding: 0; margin: 0; list-style: decimal inside; }
+.pg-steps { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: clamp(17px, 2.2vw, 33px); padding: 0; margin: 0; list-style: decimal inside; }
 .pg-steps li { color: var(--pg-ink); font-size: .94rem; }
 .pg-steps li::marker { color: var(--pg-accent); }
 .pg-steps h4 { display: inline; margin: 0; font: 650 .96rem/1.4 var(--sans); }

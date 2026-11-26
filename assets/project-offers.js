@@ -57,21 +57,34 @@ function normalizeSize(value) {
   return String(value ?? '').toLowerCase().replace(/[мm\s]/g, '').replace(/[xх*]/g, '×').replace(/\./g, ',');
 }
 
-export function getOffer(item) {
-  const currentPrice = Number.isFinite(item?.price) && item.price > 0 ? item.price : null;
-  const currentNote = typeof item?.offerNote === 'string' ? item.offerNote.trim() : '';
-  const empty = {currentPrice, currentNote, reference:null, included:[], clarify:[]};
+// Сведения из датированной публикации мастерской. Подходят карточке, пока её раздел, размеры и ссылка не менялись.
+export function publishedOffer(item) {
   const project = projects.get(item?.id);
-  if (!project || item.category !== project.category || normalizeSize(item.dimensions) !== normalizeSize(project.size)) return empty;
+  if (!project || item.category !== project.category || normalizeSize(item.dimensions) !== normalizeSize(project.size)) return null;
   const source = 'https://t.me/karkaswoodstroy/' + project.post;
-  if (String(item.source ?? '').replace(/\/$/, '') !== source) return empty;
+  if (String(item.source ?? '').replace(/\/$/, '') !== source) return null;
   const description = project.separateDelivery
     ? 'В этой публикации доставка и монтаж оплачиваются отдельно.'
     : 'Условия доставки и монтажа в публикации не указаны.';
   return {
-    currentPrice, currentNote,
     reference:{price:project.price, date:project.date, source, description},
     included:[...project.included], clarify:[project.question || description]
+  };
+}
+
+// Комплектация и уточнения, которые владелец ввёл в панели, важнее сведений из публикации.
+export function getOffer(item) {
+  const currentPrice = Number.isFinite(item?.price) && item.price > 0 ? item.price : null;
+  const currentNote = typeof item?.offerNote === 'string' ? item.offerNote.trim() : '';
+  const published = publishedOffer(item);
+  const ownIncluded = Array.isArray(item?.included)
+    ? item.included.map(line => typeof line === 'string' ? line.trim() : '').filter(Boolean) : null;
+  const ownClarify = typeof item?.clarify === 'string' ? item.clarify.trim() : null;
+  return {
+    currentPrice, currentNote,
+    reference: published?.reference ?? null,
+    included: ownIncluded ?? published?.included ?? [],
+    clarify: ownClarify !== null ? (ownClarify ? [ownClarify] : []) : published?.clarify ?? [],
   };
 }
 

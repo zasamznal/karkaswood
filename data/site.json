@@ -34,7 +34,7 @@
     {
       "id": "barn-compact",
       "category": "utility",
-      "name": "Хозблок BARN",
+      "name": "Хозблок «Барн»",
       "summary": "Распашные двери шириной 1,1 м открываются с торца. Деревянный фасад сочетается с профлистом цвета тёмного графита.",
       "dimensions": "2,4 × 3 м",
       "photo": "assets/catalog-photos/barn-compact.webp",
@@ -54,7 +54,7 @@
     {
       "id": "loft-woodstore",
       "category": "utility",
-      "name": "LOFT с дровником",
+      "name": "Хозблок «Лофт» с дровником",
       "summary": "Под одной крышей разместились закрытое отделение для инвентаря и дровник со стенками из деревянных реек.",
       "dimensions": "2,2 × 7 м",
       "photo": "assets/catalog-photos/loft-woodstore.webp",
@@ -94,7 +94,7 @@
     {
       "id": "loft-garden",
       "category": "utility",
-      "name": "Дачный хозблок LOFT",
+      "name": "Дачный хозблок «Лофт»",
       "summary": "Узкое вертикальное окно справа от двери пропускает свет. Фасад обшит деревом и матовым профлистом.",
       "dimensions": "2 × 4 м",
       "photo": "assets/catalog-photos/loft-garden.webp",
@@ -104,7 +104,7 @@
     {
       "id": "barn-maxi",
       "category": "utility",
-      "name": "Хозблок BARN MAXI",
+      "name": "Хозблок «Барн Макси»",
       "summary": "Высота в коньке — 3,5 м. Внутри деревянная вагонка и шпунтованный пол, на фасаде — два окна.",
       "dimensions": "2,4 × 5 м",
       "photo": "assets/catalog-photos/barn-maxi.webp",

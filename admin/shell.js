@@ -3,13 +3,23 @@ import { connectOwner } from './owner.js';
 import { mountItems } from './items.js';
 import { mountSettings } from './settings.js';
 import { getOffer } from '../assets/project-offers.js';
+import { normalizeSite, resolveTheme, isHolidaySeason, SCHEMA, ITEM_EXTRA_KEYS } from '../assets/site-defaults.js';
+import { getChannels } from '../assets/channels.js';
 
 const KEY = 'kw:site-draft:v1';
 const labels = {
   overview: ['Обзор мастерской', 'Измените карточку или настройки, проверьте предпросмотр и опубликуйте результат.'],
-  catalog: ['Каталог', 'Управляйте карточками, фотографиями и порядком моделей.'],
-  settings: ['Настройки сайта', 'Оформление, контакты, реквизиты и параметры планировки.'],
+  catalog: ['Каталог', 'Постройки, цены, фотографии и порядок карточек.'],
+  design: ['Оформление', 'Обычный или новогодний вид сайта.'],
+  texts: ['Тексты сайта', 'Рассказ о мастерской, шаги заказа, материалы и ответы на вопросы.'],
+  contacts: ['Контакты', 'Телефон, мессенджеры, режим работы и карта.'],
+  legal: ['Реквизиты', 'Сведения о продавце для покупателей и договора.'],
+  settings: ['Название и первый экран', 'Название мастерской, заголовок, объявление и параметры планировки.'],
+  help: ['Помощь', 'Как устроена панель и что делать, если что-то пошло не так.'],
 };
+const settingTabs = new Set(['design', 'texts', 'contacts', 'legal', 'settings']);
+// Прежние адреса разделов продолжают работать.
+const aliases = {'settings/season': 'design', 'settings/legal': 'legal'};
 const categories = { utility: 'Хозблоки', bath: 'Бани', cabin: 'Бытовки', house: 'Дома' };
 const $ = selector => document.querySelector(selector);
 const panel = $('#panel');
@@ -23,12 +33,34 @@ let dirty = false, owner = null, tab = '', editor = null, busy = false;
 let conflict = false, storageBlocked = false, storedStamp = null, storageConflict = false;
 let savedAt = '', hostSession = 0, afterLoginPublish = false;
 let deferredDraft = null;
+// Версия данных, которую хранит сервер. Вторая версия добавляет тексты сайта, галереи и комплектацию карточек.
+let publicSchema = SCHEMA;
+const extended = () => (owner ? owner.schema : publicSchema) >= SCHEMA;
 
 function content(value) {
   if (!value?.settings || typeof value.settings !== 'object' || Array.isArray(value.settings) || !Array.isArray(value.items)) {
     throw Error('Не удалось прочитать каталог мастерской.');
   }
-  return {settings: structuredClone(value.settings), items: structuredClone(value.items)};
+  const {settings, items} = normalizeSite(structuredClone({settings: value.settings, items: value.items}));
+  return {settings, items};
+}
+// Возвращает расширенные поля к опубликованным значениям: сервер первой версии их не примет.
+function dropExtended() {
+  const before = JSON.stringify(canonical(data));
+  const published = new Map(base.items.map(item => [item.id, item]));
+  data = {
+    settings: {...data.settings, extra: structuredClone(base.settings.extra)},
+    items: data.items.map(item => {
+      const copy = {...item}, origin = published.get(item.id) || {};
+      for (const key of ITEM_EXTRA_KEYS) {
+        if (origin[key] === undefined) delete copy[key];
+        else copy[key] = structuredClone(origin[key]);
+      }
+      return copy;
+    }),
+  };
+  dirty = JSON.stringify(canonical(data)) !== JSON.stringify(canonical(base));
+  return before !== JSON.stringify(canonical(data));
 }
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
@@ -70,29 +102,21 @@ function confirmAction(title, message, submit) {
     confirmDialog.showModal();
   });
 }
-const settingAnchors = {'settings/season':'kw-season', 'settings/legal':'kw-legal'};
 let route = '';
 function routeFromHash() {
-  const key = location.hash.slice(1);
-  return Object.hasOwn(labels,key) || Object.hasOwn(settingAnchors,key) ? key : 'overview';
+  const key = aliases[location.hash.slice(1)] || location.hash.slice(1);
+  return Object.hasOwn(labels,key) ? key : 'overview';
 }
 function markNavigation(next) {
   for (const link of document.querySelectorAll('[data-nav]')) {
     if (link.dataset.nav === next) link.setAttribute('aria-current','page');
     else link.removeAttribute('aria-current');
-    link.classList.toggle('is-parent', link.dataset.nav === 'settings' && Boolean(settingAnchors[next]));
   }
 }
 function focusSection(next, focusHeading) {
-  const group = document.getElementById(settingAnchors[next] || '');
-  if (group) {
-    const first = group.querySelector('input:checked') || group.querySelector('select, button, input, textarea');
-    if (first) first.focus({preventScroll:true});
-    group.scrollIntoView({block:'start',behavior:'instant'});
-  } else if (focusHeading) {
-    $('#section-title').focus({preventScroll:true});
-    window.scrollTo({top:0,behavior:'instant'});
-  }
+  if (!focusHeading) return;
+  $('#section-title').focus({preventScroll:true});
+  window.scrollTo({top:0,behavior:'instant'});
 }
 function stamp() { return crypto.randomUUID(); }
 function readSaved() {
@@ -172,7 +196,7 @@ $('#site-live').href=publicPage('../',publicSeason);
 $('#privacy-live').href=publicPage('../info/#privacy',publicSeason);
 
 function updateAppearance() {
-  const season=data?.settings.theme==='newyear'?'newyear':'classic';
+  const season=data ? resolveTheme(data.settings) : 'classic';
   document.documentElement.dataset.adminSeason=season;
   $('meta[name="theme-color"]').content=season==='newyear'?'#183d40':'#20362a';
   $('#preview').href=publicPage('../',season,true);
@@ -236,17 +260,102 @@ function priceOverview(visibleItems) {
   details.append(toggle,list); section.append(details);
   return section;
 }
+// Латиница в названиях: закон требует русского текста для покупателей (статья 10.1 закона о защите прав потребителей).
+const latinNames = [[/\bBARN\s*MAXI\b/gi,'«Барн Макси»'],[/\bBARN\s*MINI\b/gi,'«Барн Мини»'],[/\bBARN\b/gi,'«Барн»'],[/\bLOFT\b/gi,'«Лофт»'],[/\bOSB\b/gi,'ОСБ'],[/\bPVC\b/gi,'ПВХ']];
+function russianName(name) {
+  let result=name;
+  for (const [pattern,replacement] of latinNames) result=result.replace(pattern,replacement);
+  result=result.replace(/^«(Лофт|Барн[^»]*)»(?=\s+с\s)/,'Хозблок «$1»').replace(/\s{2,}/g,' ').trim();
+  return /[a-z]/i.test(result) ? '' : result;
+}
+function siteChecks() {
+  const settings=data.settings, legal=settings.legal || {}, channels=getChannels(settings);
+  const shown=data.items.filter(item=>item.published!==false);
+  const checks=[];
+  const add=(ok,title,text,href,label,fix)=>checks.push({ok,title,text,href,label,fix});
+  const seller=Boolean(String(legal.name||'').trim() && String(legal.inn||'').trim());
+  add(seller,'Реквизиты продавца',seller?'Наименование и ИНН указаны.':'Укажите ФИО или наименование и ИНН. Покупатель вправе знать, с кем заключает договор.','#legal','Заполнить');
+  const reach=Boolean(channels.email || String(legal.address||'').trim());
+  add(reach,'Адрес или почта для обращений',reach?'Покупатель знает, куда направить обращение.':'Нужны для политики обработки персональных данных и претензий.','#legal','Указать');
+  add(Boolean(channels.phone),'Телефон',channels.phone?'Звонок и СМС работают, даже когда мессенджеры недоступны.':'Добавьте номер: это единственный способ связи, который не зависит от мессенджеров.','#contacts','Добавить');
+  const backup=Boolean(channels.max || channels.whatsapp || channels.vk || channels.email);
+  add(backup,'Запасной способ связи',backup?'Кроме Telegram указан ещё один канал.':'Telegram в России работает с перебоями. Добавьте MAX, ВКонтакте или почту, если пользуетесь ими.','#contacts','Добавить');
+  add(Boolean(channels.hours),'Режим работы',channels.hours?'Время работы показано в контактах.':'Подскажите покупателям, когда можно звонить и приезжать.','#contacts','Указать');
+  const latin=shown.filter(item=>/[a-z]/i.test(item.name));
+  const fixable=latin.filter(item=>russianName(item.name));
+  add(!latin.length,'Названия на русском',latin.length?'Латиница в названиях: '+latin.map(item=>item.name).join(', ')+'.':'В названиях построек нет латиницы.','#catalog',fixable.length?'':'Открыть каталог',
+    fixable.length ? {label:'Перевести названия',run(){
+      changePart('items',data.items.map(item=>latin.includes(item) && russianName(item.name) ? {...item,name:russianName(item.name)} : item));
+      render(); notice('Названия переведены в черновике. Проверьте их и нажмите «Опубликовать».');
+    }} : null);
+  const priced=shown.filter(item=>getOffer(item).currentPrice!==null).length;
+  add(shown.length>0 && priced===shown.length,'Актуальные цены',!shown.length?'В каталоге пока нет построек.':priced===shown.length?'У всех построек указана актуальная цена.':'Без актуальной цены — '+(shown.length-priced)+' из '+shown.length+'. Покупатель видит цену из старой публикации с датой.','#catalog','Открыть каталог');
+  add(extended(),'Сервер сайта',extended()?'Сервер хранит все разделы панели.':'Работает прежняя версия сервера: тексты сайта, галереи и комплектация карточек пока не публикуются. Нужен разработчик.','#help','Что делать');
+  return checks;
+}
+function checklist() {
+  const checks=siteChecks(), open=checks.filter(check=>!check.ok);
+  const section=element('section','a-box a-checks');
+  const header=element('div','a-box-heading');
+  header.append(element('h2','','Проверка сайта'),element('span','a-check-score'+(open.length?'':' is-done'),open.length?'Осталось: '+open.length:'Всё готово'));
+  const list=element('ul','a-check-list');
+  for (const check of [...open,...checks.filter(check=>check.ok)]) {
+    const row=element('li','a-check'+(check.ok?' is-ok':''));
+    const mark=element('span','a-check-mark'); mark.append(icon(check.ok?'check':'alert'));
+    const copy=element('div','a-check-copy');
+    copy.append(element('strong','',check.title),element('span','',check.text));
+    row.append(mark,copy);
+    if (!check.ok && check.fix) {
+      const button=element('button','a-btn a-secondary a-check-action',check.fix.label);
+      button.type='button'; button.addEventListener('click',check.fix.run); row.append(button);
+    } else if (!check.ok && check.label) {
+      const link=element('a','a-btn a-secondary a-check-action',check.label);
+      link.href=check.href; row.append(link);
+    }
+    list.append(row);
+  }
+  section.append(header,list);
+  return section;
+}
+function seasonCard() {
+  const automatic=extended() && data.settings.extra?.themeMode==='auto';
+  const winter=resolveTheme(data.settings)==='newyear';
+  const card=element('section','a-box a-season'+(winter?' is-winter':''));
+  const image=element('img','a-preview-photo');
+  image.src=winter?'../assets/winter-hero.webp':'../assets/hero.webp'; image.alt='';
+  const body=element('div','a-season-body');
+  const toggle=element('button','kw-switch'); toggle.type='button'; toggle.id='season-switch';
+  toggle.setAttribute('role','switch'); toggle.setAttribute('aria-checked',String(winter)); toggle.disabled=automatic;
+  const track=element('span','kw-switch__track'); track.append(element('span','kw-switch__thumb'));
+  toggle.append(track,element('span','kw-switch__state',winter?'Включено':'Выключено'));
+  const label=element('label','','Новогоднее оформление'); label.htmlFor=toggle.id;
+  const row=element('div','kw-switch-row'); const copy=element('div','kw-switch-copy');
+  copy.append(label,element('p','',automatic
+    ? 'Включается само с 1 декабря по 14 января. Сегодня сайт показывает '+(winter?'новогоднее':'обычное')+' оформление.'
+    : winter?'Зимняя обложка, гирлянда и снег. Выключите после праздников.':'Включите к праздникам: сайт сменит обложку и цвета.'));
+  row.append(toggle,copy);
+  toggle.addEventListener('click',()=>{
+    changePart('settings',{...data.settings,theme:winter?'classic':'newyear'});
+    render(); document.getElementById('season-switch')?.focus();
+    notice(winter?'Обычное оформление включено в черновике. Нажмите «Опубликовать», чтобы его увидели покупатели.':'Новогоднее оформление включено в черновике. Нажмите «Опубликовать», чтобы его увидели покупатели.');
+  });
+  const more=element('a','a-card-link','Все настройки оформления'); more.href='#design';
+  body.append(element('h2','','Оформление сайта'),row,more);
+  if (!automatic && !winter && isHolidaySeason()) body.append(element('p','a-season-tip','Сейчас праздничные дни — самое время включить.'));
+  if (!automatic && winter && !isHolidaySeason() && new Date().getMonth()+1!==11) body.append(element('p','a-season-tip','Праздники прошли — можно вернуть обычное оформление.'));
+  card.append(image,body);
+  return card;
+}
 function overview() {
   const visibleItems=data.items.filter(item=>item.published!==false);
-  const winter=data.settings.theme==='newyear';
   const quick=element('nav','a-quick-grid');
   quick.setAttribute('aria-label','Быстрые действия');
   const add=actionLink('Добавить постройку','#catalog','add','Новая карточка с фото и ценой');
   add.classList.add('a-quick-primary'); add.dataset.newItem='';
-  const catalogue=actionLink('Изменить каталог','#catalog','catalog','Цены, фотографии и порядок');
-  const season=actionLink('Оформление и сезон','#settings/season','season','Обычный или новогодний вид');
-  const legal=actionLink('Реквизиты','#settings/legal','doc','Данные продавца для покупателей');
-  quick.append(add,catalogue,season,legal);
+  const catalogue=actionLink('Изменить цены и фото','#catalog','catalog','Карточки каталога и их порядок');
+  const texts=actionLink('Тексты сайта','#texts','doc','О мастерской, вопросы и ответы');
+  const contacts=actionLink('Контакты','#contacts','phone','Телефон, мессенджеры, режим работы');
+  quick.append(add,catalogue,texts,contacts);
 
   const grid=element('div','a-overview'), listBox=element('section','a-box'), header=element('div','a-box-heading');
   const edit=element('a','','Весь каталог'); edit.href='#catalog';
@@ -276,33 +385,51 @@ function overview() {
     const first=element('a','a-card-link','Добавить первую постройку'); first.href='#catalog'; first.dataset.newItem='';
     empty.append(element('p','','В каталоге пока нет построек.'),first); listBox.append(empty);
   }
-
-  const preview=element('section','a-box a-preview-card'), image=element('img','a-preview-photo');
-  image.src=winter?'../assets/winter-hero.webp':'../assets/hero.webp';
-  image.alt='';
-  const body=element('div','a-preview-body'), settings=element('a','a-card-link','Настроить оформление');
-  settings.href='#settings/season';
-  body.append(element('h2','','Оформление сайта'),element('p','',winter?'Новогодний вид':'Обычный вид'),settings);
-  preview.append(image,body); grid.append(listBox,preview); panel.replaceChildren(quick,priceOverview(visibleItems),grid);
+  const side=element('div','a-overview-side');
+  side.append(seasonCard());
+  grid.append(listBox,side); panel.replaceChildren(quick,checklist(),priceOverview(visibleItems),grid);
+}
+function help() {
+  const box=element('section','a-box a-help');
+  const blocks=[
+    ['Как изменить сайт','Откройте нужный раздел слева, внесите правки и нажмите «Предпросмотр» — сайт откроется в новой вкладке с вашими изменениями. Покупатели увидят их только после кнопки «Опубликовать».'],
+    ['Черновик','Всё, что вы меняете, сразу сохраняется в этом браузере как черновик. Можно закрыть вкладку и вернуться позже с этого же устройства. Кнопка «Отменить изменения» возвращает опубликованную версию.'],
+    ['Вход владельца','Публиковать может только владелец. Нажмите «Вход владельца» и введите пароль мастерской. Сеанс длится 4 часа, после этого пароль нужно ввести снова. Без пароля панель работает в деморежиме: правки видны только вам.'],
+    ['Новая постройка','Раздел «Каталог» → «Добавить карточку». Заполните название, размеры и цену, на вкладке «Фото» загрузите снимки с телефона — панель сама уменьшит их. Галочка «Показывать в каталоге» управляет видимостью.'],
+    ['Цены','В карточке есть поле «Актуальная цена». Пока оно пустое, покупатель видит цену из публикации в канале с датой. Указанные цены — справочные: в подвале сайта написано, что они не являются публичной офертой.'],
+    ['Новогоднее оформление','Переключатель есть на странице «Обзор» и в разделе «Оформление». Можно включать вручную или поставить галочку «Включать само по календарю» — тогда сайт сменит вид 1 декабря и вернёт обычный 15 января.'],
+    ['Если не публикуется','Проверьте интернет и войдите заново. Сообщение «Каталог уже изменился» значит, что сайт правили с другого устройства: нажмите «Загрузить с сайта» и внесите правки ещё раз.'],
+    ['Если поля закрыты замком','Сервер сайта работает на прежней версии и не хранит новые разделы: тексты сайта, галереи и комплектацию карточек. Передайте разработчику файл docs/DEPLOY.md из репозитория — обновление занимает несколько минут.'],
+  ];
+  for (const [title,text] of blocks) {
+    const item=element('details','a-help-item');
+    item.append(element('summary','',title),element('p','',text));
+    box.append(item);
+  }
+  box.firstElementChild.open=true;
+  panel.replaceChildren(box);
 }
 function render(next=routeFromHash(), focus=false) {
-  editor?.destroy?.(); editor=null; route=next; tab=next.split('/')[0]; setMenu(false);
+  editor?.destroy?.(); editor=null; route=next; tab=next; setMenu(false);
   const [title,subtitle]=labels[tab];
   $('#section-title').textContent=title; $('#section-subtitle').textContent=subtitle;
-  document.title=title+' · '+(data?.settings.brand || 'Karkaswood');
+  document.title=title+' · '+(data?.settings.extra?.brandRu || data?.settings.brand || 'Каркасвуд');
   markNavigation(next);
   if (!data) return;
   panel.replaceChildren();
   if (tab==='overview') overview();
-  if (tab==='catalog') editor=mountItems(panel,{items:data.items,onChange:items=>changePart('items',items)});
-  if (tab==='settings') {
-    editor=mountSettings(panel,{settings:data.settings,onChange:settings=>changePart('settings',settings)});
-    const legalPreview=element('a','a-inline kw-settings__wide','Посмотреть реквизиты в черновике');
-    legalPreview.id='legal-preview';
-    legalPreview.dataset.draftLink='';
-    legalPreview.target='_blank';
-    legalPreview.rel='noopener';
-    $('#kw-legal .kw-settings__grid').append(legalPreview);
+  if (tab==='help') help();
+  if (tab==='catalog') editor=mountItems(panel,{items:data.items,extended:extended(),onChange:items=>changePart('items',items)});
+  if (settingTabs.has(tab)) {
+    editor=mountSettings(panel,{settings:data.settings,section:tab,extended:extended(),onChange:settings=>changePart('settings',settings)});
+    if (tab==='legal') {
+      const legalPreview=element('a','a-inline kw-settings__wide','Посмотреть реквизиты в черновике');
+      legalPreview.id='legal-preview';
+      legalPreview.dataset.draftLink='';
+      legalPreview.target='_blank';
+      legalPreview.rel='noopener';
+      $('#kw-legal .kw-settings__grid').append(legalPreview);
+    }
   }
   focusSection(next,focus);
   updateState();
@@ -315,27 +442,24 @@ function readyForAction() {
     notice('Сначала сохраните карточку или отмените изменения в её форме.','error');
     return false;
   }
-  if (tab==='settings' && editor?.validate && !editor.validate()) {
-    notice('Проверьте отмеченные поля настроек.','error'); return false;
+  if (settingTabs.has(tab) && editor?.validate && !editor.validate()) {
+    notice('Проверьте отмеченные поля.','error'); return false;
   }
   return true;
 }
 async function navigate(next) {
   if (busy || !data) return false;
-  if (route===next) {setMenu(false); focusSection(next,false); return true;}
-  const nextTab=next.split('/')[0];
-  if (nextTab!==tab && pending() && !await confirmAction('Закрыть редактор?', 'Незавершённые правки в текущей форме будут потеряны.', 'Закрыть редактор')) return false;
+  if (route===next) {setMenu(false); return true;}
+  if (pending() && !await confirmAction('Закрыть редактор?', 'Незавершённые правки в текущей форме будут потеряны.', 'Закрыть редактор')) return false;
   if (location.hash!=='#'+next) history.pushState(null,'','#'+next);
-  if (nextTab===tab) {
-    route=next;setMenu(false);markNavigation(next);focusSection(next,true);
-  } else render(next,true);
+  render(next,true);
   return true;
 }
 document.addEventListener('click',async event=>{
   const link=event.target.closest('a[href^="#"]');
   if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-  const target=link.hash.slice(1);
-  if (!Object.hasOwn(labels,target) && !Object.hasOwn(settingAnchors,target)) return;
+  const target=aliases[link.hash.slice(1)] || link.hash.slice(1);
+  if (!Object.hasOwn(labels,target)) return;
   event.preventDefault();
   if (!await navigate(target)) return;
   if (link.hasAttribute('data-new-item')) editor?.openNew?.();
@@ -367,6 +491,7 @@ async function discard(){
   busy=true; updateState(); setEditingLocked(true);
   try{
     const doc=owner ? await owner.load() : await loadPublicSite();
+    if(!owner)publicSchema=doc.schema;
     await setBase(doc,owner?'owner':'public'); removeSaved(); render();
     notice('Загружена сохранённая версия.');
   }catch(error){notice(error.message || 'Не удалось загрузить сайт. Черновик сохранён.','error');}
@@ -425,9 +550,13 @@ $('#login-form').addEventListener('submit',async event=>{
     }
     const merged=await adoptOwner(remote);
     owner=session;
-    continuePublish=afterLoginPublish && merged && dirty;
+    const trimmed=merged && !extended() && dropExtended();
+    if(trimmed)storeDraft(true);
+    continuePublish=afterLoginPublish && merged && dirty && !trimmed;
     accessDialog.close();render();
-    if(merged)notice('Доступ владельца подключён. Можно публиковать изменения.');
+    if(merged)notice(trimmed
+      ? 'Доступ владельца подключён. Сервер прежней версии не хранит тексты сайта, галереи и комплектацию карточек, поэтому эти правки не сохранены. Остальное можно публиковать.'
+      : 'Доступ владельца подключён. Можно публиковать изменения.',trimmed?'error':'info');
   }catch(error){
     session?.logout?.();
     if(accessDialog.open)$('#access-error').textContent=error.message || 'Не удалось выполнить вход.';
@@ -481,6 +610,7 @@ async function initialize(){
   const saved=readSaved();storedStamp=saved?.stamp || null;
   try{
     const published=await loadPublicSite();
+    publicSchema=published.schema;
     await setBase(published,'public');
     if(saved?.dirty===true && saved.scope==='owner'){
       deferredDraft=saved;
@@ -488,6 +618,7 @@ async function initialize(){
     }else if(saved?.dirty===true){
       data=content(saved);baseSha=saved.baseSha || null;baseDigest=saved.baseDigest || '';
       scope=saved.scope==='owner'?'owner':'public';dirty=true;savedAt=saved.updatedAt || '';
+      if(!extended())dropExtended();
       notice('Восстановлен черновик с этого устройства.');
     }
     render();
